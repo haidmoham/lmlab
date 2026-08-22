@@ -7,6 +7,7 @@ This repository is my laboratory for implementing, modifying, and understanding 
 ## Agent role
 
 - Do not implement models, training code, experiments, or tests unless I explicitly ask.
+- Agents may maintain project plumbing: environment configuration, dependency metadata, formatting/linting/test tooling, and developer documentation.
 - Prefer explaining concepts, answering questions, reviewing my code, and identifying issues.
 - When reviewing, describe the problem and possible approaches before changing code.
 - Keep unsolicited setup and abstraction to a minimum.

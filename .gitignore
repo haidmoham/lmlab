@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.venv/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+
+# Local data and generated model artifacts
+data/*
+!data/.gitkeep
+artifacts/
+checkpoints/
+runs/
+wandb/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+
+# Notebook state
+.ipynb_checkpoints/
+
+# Local secrets and environment configuration
+.env
+.env.*
+!.env.example

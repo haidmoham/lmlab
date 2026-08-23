@@ -59,8 +59,11 @@ def bpe_encode(text, vocab, merges):
     return tokens
 
 
-def bpe_decode(tokens, vocab):
-    return b"".join(vocab[token] for token in tokens).decode("utf-8")
+def bpe_decode(tokens, vocab, errors="strict"):
+    return b"".join(vocab[token] for token in tokens).decode(
+        "utf-8",
+        errors=errors,
+    )
 
 
 def save_tokenizer(path, vocab, merges):

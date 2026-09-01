@@ -7,8 +7,7 @@ from pathlib import Path
 from urllib.request import urlopen
 
 SOURCE_URL = (
-    "https://raw.githubusercontent.com/karpathy/char-rnn/master/"
-    "data/tinyshakespeare/input.txt"
+    "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt"
 )
 DEFAULT_OUTPUT = Path(__file__).resolve().parents[1] / "data" / "tiny_shakespeare.txt"
 

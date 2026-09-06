@@ -6,7 +6,9 @@ I work from constituent operations to complete models, then change them to inves
 
 After the attention foundations, the direction is language-model paper reproduction: implementing published ideas, checking fidelity, and investigating changes through ablation.
 
-AI is an active collaborator in explanations, critique, and investigation. Its default code contributions are pedagogical; changes to model and experiment logic remain mine unless explicitly delegated. The standard is whether I can explain the machinery, change it deliberately, and defend conclusions with evidence. I own the research questions and the judgments that follow.
+the long-horizon aim is research independence strong enough to be competitive for fellowships at labs such as anthropic. i write the reference implementations of mechanisms i am learning; ai contributes scientific plumbing, critique, and agreed treatments and ablations. we use jupyter as a shared computational workspace, with runnable experiments and visible evidence.
+
+progress means increasingly owning the questions, experimental decisions, and arguments—not merely producing working models. the [learning and research contract](AGENTS.md) defines the division of labor and experimental standards.
 
 ## setup
 

@@ -131,6 +131,20 @@ def run(steps=1000, seeds=(42, 43, 44), output="artifacts/bigram-vs-transformer"
                     "sample": bpe_decode(generate(model, train[:8]), vocab, errors="replace"),
                 }
             )
+            torch.save(
+                {
+                    "model": model.state_dict(),
+                    "optimizer": optimizers[name].state_dict(),
+                    "step": steps,
+                    "seed": seed,
+                    "batch_rng_state": rng.getstate(),
+                    "torch_rng_state": torch.get_rng_state(),
+                    "config": report["config"],
+                    "history": histories[name],
+                },
+                output / f"{name}-{seed}-checkpoint.pt",
+            )
+            # retain a weights-only export for the notebook's existing generation cell.
             torch.save(model.state_dict(), output / f"{name}-{seed}.pt")
         (output / "results.json").write_text(json.dumps(report, indent=2))
     fig, axes = plt.subplots(1, 2, figsize=(11, 4))

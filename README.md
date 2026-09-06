@@ -4,7 +4,9 @@ A personal laboratory for understanding, building, and researching language mode
 
 I work from constituent operations to complete models, then change them to investigate what matters. Implementation, mathematical reasoning, and ablation are complementary ways to understand the same system.
 
-AI is an active collaborator in that work: writing code, developing explanations, challenging designs, and helping investigate results. The standard is whether I can explain the machinery, change it deliberately, and defend conclusions with evidence. I own the research questions and the judgments that follow.
+After the attention foundations, the direction is language-model paper reproduction: implementing published ideas, checking fidelity, and investigating changes through ablation.
+
+AI is an active collaborator in explanations, critique, and investigation. Its default code contributions are pedagogical; changes to model and experiment logic remain mine unless explicitly delegated. The standard is whether I can explain the machinery, change it deliberately, and defend conclusions with evidence. I own the research questions and the judgments that follow.
 
 ## setup
 

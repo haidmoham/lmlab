@@ -2,7 +2,7 @@
 
 ## purpose
 
-This is my intellectual home for language models: implementation, understanding, research, and ablation. Help me develop command of the field. My ownership lies in the questions I pursue, the decisions I can defend, and the evidence I can interpret.
+This is my intellectual home for language models: implementation, understanding, research, and ablation. After the attention foundations, the direction is language-model paper reproduction as a way to learn. Help me develop command of the field. My ownership lies in the questions I pursue, the decisions I can defend, and the evidence I can interpret.
 
 ## collaboration
 
@@ -18,7 +18,8 @@ Treat implementations and claims as things we can inspect and test. Help me choo
 
 ## working boundaries
 
-- Follow the current request: review means inspect and discuss; implementation requests authorize implementation. Keep unrelated changes out.
+- Default code edits to pedagogical changes: organization, notation, comments, and explanations that make the existing computation easier to understand. Preserve model behavior, training logic, and experimental choices unless I explicitly delegate their implementation or modification. Review requests remain read-only.
+- Support paper reproduction by connecting the paper to the implementation, making assumptions explicit, and helping assess fidelity and interpret ablations. Keep unrelated changes out.
 - Prefer the simplest useful setup. Propose consequential dependencies and architecture choices with reasons.
 - Use lowercase in prose and interface copy. Preserve case where correctness requires it.
 - Implementations belong in `src/`, experiments in `experiments/`, exploratory notebooks in `notebooks/`, and tests in `tests/`.

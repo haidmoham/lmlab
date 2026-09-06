@@ -86,6 +86,7 @@ def run(steps=1000, seeds=(42, 43, 44), output="artifacts/bigram-vs-transformer"
             "vocab_size": len(vocab),
         },
         "runs": [],
+        "checkpoint_samples": [],
     }
     for seed in seeds:
         torch.manual_seed(seed)
@@ -111,6 +112,23 @@ def run(steps=1000, seeds=(42, 43, 44), output="artifacts/bigram-vs-transformer"
                     }
                     histories[name].append(row)
                     print(f"seed {seed} {name} {row}", flush=True)
+            if step in (1000, 2500, 5000, 10000):
+                for name, model in models.items():
+                    ids = generate(model, train[:8])
+                    report["checkpoint_samples"].append(
+                        {
+                            "seed": seed,
+                            "model": name,
+                            "step": step,
+                            "prompt": bpe_decode(train[:8], vocab, errors="replace"),
+                            "continuation": bpe_decode(ids[8:], vocab, errors="replace"),
+                            "token_ids": ids,
+                            "sampling_seed": 123,
+                            "temperature": 1.0,
+                            "validation_loss": histories[name][-1]["validation"],
+                        }
+                    )
+                    torch.save(model.state_dict(), output / f"{name}-{seed}-step-{step}.pt")
             if step == steps:
                 break
             batch = sample_batch(train, rng)

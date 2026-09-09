@@ -156,3 +156,29 @@ class SingleTransformerLanguageModel(nn.Module):
         x = self.token_embedding_table(idx) + self.position_embedding_table(positions)
         x, _ = self.block(x)
         return self.lm_head(self.final_norm(x))
+
+
+class StackedTransformerLanguageModel(nn.Module):
+    """Map token ids to vocabulary logits through a configurable block stack."""
+
+    def __init__(self, vocab_size, n_layers=2, n_embd=32, block_size=8, num_heads=2):
+        super().__init__()
+        self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
+        self.position_embedding_table = nn.Embedding(block_size, n_embd)
+        self.stack = TransformerStack(
+            n_layers=n_layers,
+            d_model=n_embd,
+            n_head=num_heads,
+            d_k=n_embd // num_heads,
+            d_v=n_embd // num_heads,
+            d_ff=4 * n_embd,
+        )
+        self.final_norm = nn.LayerNorm(n_embd)
+        self.lm_head = nn.Linear(n_embd, vocab_size)
+
+    def forward(self, token_ids):
+        positions = torch.arange(token_ids.size(1), device=token_ids.device)
+        embeddings = self.token_embedding_table(token_ids)
+        embeddings = embeddings + self.position_embedding_table(positions)
+        representations, _ = self.stack(embeddings)
+        return self.lm_head(self.final_norm(representations))

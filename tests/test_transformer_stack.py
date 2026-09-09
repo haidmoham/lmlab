@@ -1,7 +1,11 @@
 import pytest
 import torch
 
-from src.language_models import TransformerStack
+from src.language_models import (
+    SingleTransformerLanguageModel,
+    StackedTransformerLanguageModel,
+    TransformerStack,
+)
 
 
 @pytest.mark.parametrize("depth", [1, 2, 3])
@@ -41,3 +45,21 @@ def test_stack_preserves_causality():
 def test_stack_rejects_empty_depth():
     with pytest.raises(ValueError, match="n_layers"):
         TransformerStack(n_layers=0, d_model=8, n_head=2, d_k=4, d_v=4, d_ff=16)
+
+
+def test_one_layer_wrapper_matches_existing_model():
+    reference_model = SingleTransformerLanguageModel(vocab_size=32)
+    stacked_model = StackedTransformerLanguageModel(vocab_size=32, n_layers=1)
+    shared_components = (
+        "token_embedding_table",
+        "position_embedding_table",
+        "final_norm",
+        "lm_head",
+    )
+    for component_name in shared_components:
+        reference_component = getattr(reference_model, component_name)
+        stacked_component = getattr(stacked_model, component_name)
+        stacked_component.load_state_dict(reference_component.state_dict())
+    stacked_model.stack.blocks[0].load_state_dict(reference_model.block.state_dict())
+    token_ids = torch.randint(32, (2, 8))
+    torch.testing.assert_close(reference_model(token_ids), stacked_model(token_ids))

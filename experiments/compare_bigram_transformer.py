@@ -1,8 +1,10 @@
 """Paired equal-update experiment; run with python -m experiments.compare_bigram_transformer."""
 
 import argparse
+import hashlib
 import json
 import random
+import subprocess
 import time
 from pathlib import Path
 
@@ -11,7 +13,11 @@ import torch
 from torch.nn import functional as F
 
 from src.dataset import load_tiny_shakespeare_tokens, split_token_stream
-from src.language_models import BigramLanguageModel, SingleTransformerLanguageModel
+from src.language_models import (
+    BigramLanguageModel,
+    SingleTransformerLanguageModel,
+    StackedTransformerLanguageModel,
+)
 from src.tokenizer import bpe_decode
 
 matplotlib.use("Agg")
@@ -57,9 +63,13 @@ def generate(model, prompt, count=100):
     return ids[0].tolist()
 
 
-def run(steps=1000, seeds=(42, 43, 44), output="artifacts/bigram-vs-transformer"):
+def run(
+    steps=1000, seeds=(42, 43, 44), output="artifacts/bigram-vs-transformer", include_stack=False
+):
     torch.set_num_threads(2)
     output = Path(output)
+    if (output / "results.json").exists():
+        raise FileExistsError(f"results already exist in {output}; choose a new output directory")
     output.mkdir(parents=True, exist_ok=True)
     tokens, vocab, _ = load_tiny_shakespeare_tokens(Path("data"))
     train, validation = split_token_stream(tokens)
@@ -71,6 +81,21 @@ def run(steps=1000, seeds=(42, 43, 44), output="artifacts/bigram-vs-transformer"
     }
     report = {
         "config": {
+            "include_stack": include_stack,
+            "source_commit": subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], text=True
+            ).strip(),
+            "source_sha256": {
+                path: hashlib.sha256(Path(path).read_bytes()).hexdigest()
+                for path in [
+                    "src/language_models.py",
+                    "experiments/compare_bigram_transformer.py",
+                    "src/dataset.py",
+                    "src/tokenizer.py",
+                    "data/tiny_shakespeare.txt",
+                ]
+            },
+            "torch_version": torch.__version__,
             "steps": steps,
             "seeds": list(seeds),
             "context": 8,
@@ -96,6 +121,20 @@ def run(steps=1000, seeds=(42, 43, 44), output="artifacts/bigram-vs-transformer"
         transformer.token_embedding_table.load_state_dict(bigram.token_embedding_table.state_dict())
         transformer.lm_head.load_state_dict(bigram.lm_head.state_dict())
         models = {"bigram": bigram, "transformer": transformer}
+        if include_stack:
+            stacked = StackedTransformerLanguageModel(len(vocab), n_layers=2)
+            # Copy values, never parameter objects: treatments train independently.
+            for component in (
+                "token_embedding_table",
+                "position_embedding_table",
+                "final_norm",
+                "lm_head",
+            ):
+                source_component = getattr(transformer, component)
+                target_component = getattr(stacked, component)
+                target_component.load_state_dict(source_component.state_dict())
+            stacked.stack.blocks[0].load_state_dict(transformer.block.state_dict())
+            models["two_blocks"] = stacked
         optimizers = {
             name: torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0.01)
             for name, model in models.items()
@@ -129,6 +168,19 @@ def run(steps=1000, seeds=(42, 43, 44), output="artifacts/bigram-vs-transformer"
                         }
                     )
                     torch.save(model.state_dict(), output / f"{name}-{seed}-step-{step}.pt")
+                    torch.save(
+                        {
+                            "model": model.state_dict(),
+                            "optimizer": optimizers[name].state_dict(),
+                            "step": step,
+                            "seed": seed,
+                            "batch_rng_state": rng.getstate(),
+                            "torch_rng_state": torch.get_rng_state(),
+                            "config": report["config"],
+                            "history": histories[name],
+                        },
+                        output / f"{name}-{seed}-step-{step}-checkpoint.pt",
+                    )
             if step == steps:
                 break
             batch = sample_batch(train, rng)
@@ -167,7 +219,10 @@ def run(steps=1000, seeds=(42, 43, 44), output="artifacts/bigram-vs-transformer"
         (output / "results.json").write_text(json.dumps(report, indent=2))
     fig, axes = plt.subplots(1, 2, figsize=(11, 4))
     for ax, split in zip(axes, ("train", "validation")):
-        for name, color in [("bigram", "#526477"), ("transformer", "#ac4827")]:
+        colors = {"bigram": "#526477", "transformer": "#ac4827"}
+        if include_stack:
+            colors["two_blocks"] = "#31785c"
+        for name, color in colors.items():
             runs = [r for r in report["runs"] if r["model"] == name]
             values = torch.tensor([[h[split] for h in r["history"]] for r in runs])
             x = [h["step"] for h in runs[0]["history"]]
@@ -179,7 +234,7 @@ def run(steps=1000, seeds=(42, 43, 44), output="artifacts/bigram-vs-transformer"
             ylabel="cross-entropy (nats/BPE token)",
         )
         ax.legend()
-    fig.suptitle("bigram control vs one-block treatment: mean and seed range")
+    fig.suptitle("matched treatment comparison: mean and seed range")
     fig.tight_layout()
     fig.savefig(output / "loss.png", dpi=160)
     plt.close(fig)
@@ -190,5 +245,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--steps", type=int, default=1000)
     parser.add_argument("--output", default="artifacts/bigram-vs-transformer")
+    parser.add_argument("--include-stack", action="store_true")
     args = parser.parse_args()
-    run(steps=args.steps, output=args.output)
+    run(steps=args.steps, output=args.output, include_stack=args.include_stack)

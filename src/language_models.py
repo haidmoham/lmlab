@@ -125,13 +125,12 @@ class TransformerBlock(nn.Module):
         self.ff = PositionWiseFeedForward(d_model, d_ff)
 
     def forward(self, x):
-        # attention residual
-        z = self.ln1(x)
-        attn_out, weights = self.attn(z, z, z)
-        x = x + attn_out
+        # Normalize after adding the attention update to the residual stream.
+        attn_out, weights = self.attn(x, x, x)
+        x = self.ln1(x + attn_out)
 
-        # feed-forward residual
-        x = x + self.ff(self.ln2(x))
+        # Normalize after the feed-forward residual addition as well.
+        x = self.ln2(x + self.ff(x))
 
         return x, weights
 
@@ -188,7 +187,7 @@ class BigramLanguageModel(nn.Module):
 
 
 class SingleTransformerLanguageModel(nn.Module):
-    """Add selectable positions, one pre-norm block, and final norm to the bigram path."""
+    """Add selectable positions, one post-norm block, and final norm to the bigram path."""
 
     def __init__(
         self, vocab_size, n_embd=32, block_size=8, num_heads=2, *, position_encoding="learned"

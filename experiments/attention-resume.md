@@ -4,7 +4,9 @@
 
 `notebooks/03_attention.ipynb` is the shared working surface, with local executed outputs preserved. source implementations live in `src/language_models.py` and the scientific runners in `experiments/`.
 
-implemented: causal scaled dot-product multi-head attention, ReLU feed-forward networks, pre-norm residual blocks, independent configurable stacks, final normalization, learned and sinusoidal positions, and a zero-position ablation. the current model is a causal language model, not the paper's complete encoder-decoder architecture.
+implemented: causal scaled dot-product multi-head attention, ReLU feed-forward networks, post-norm residual blocks, independent configurable stacks, final normalization, learned and sinusoidal positions, and a zero-position ablation. the current model is a causal language model, not the paper's complete encoder-decoder architecture.
+
+the block now uses post-norm in source and the notebook, matching section 3.1. the saved experiments/checkpoints below used pre-norm; replay them with source revision `27127de`. loading their weights into the new block changes computation even though state-dict keys still match. no post-norm training has been run. the wrappers still retain their separate final normalization.
 
 completed experiments (all three seeds 42/43/44, 10,000 updates):
 - bigram and depths 1/2/4/6/8: `depth-comparison.md`.
@@ -26,7 +28,7 @@ the user selected **encoder, cross-attention, warmup, and dropout**, and explici
 
 reference: [attention is all you need](https://arxiv.org/pdf/1706.03762), sections 3.1/3.2.3 (encoder and cross-attention), 5.3 (warmup and inverse-square-root decay), and 5.4 (dropout). local PDF: `artifacts/papers/attention-is-all-you-need.pdf`.
 
-remaining fidelity differences are intentionally deferred: paper post-norm versus current pre-norm, embedding scaling and weight sharing, label smoothing, original optimizer details beyond the selected schedule, translation-scale data/training, beam search and checkpoint averaging. do not describe the current work as a full paper reproduction. section 4 and table 3 still contain useful reasoning and ablations; the user is choosing a narrower scope, not asserting those sections are only history.
+remaining fidelity differences are intentionally deferred: embedding scaling and weight sharing, label smoothing, original optimizer details beyond the selected schedule, translation-scale data/training, beam search and checkpoint averaging. do not describe the current work as a full paper reproduction. section 4 and table 3 still contain useful reasoning and ablations; the user is choosing a narrower scope, not asserting those sections are only history.
 
 ## collaboration
 

@@ -4,8 +4,21 @@ import torch
 from src.language_models import (
     SingleTransformerLanguageModel,
     StackedTransformerLanguageModel,
+    TransformerBlock,
     TransformerStack,
 )
+
+
+def test_block_applies_normalization_after_each_residual_addition():
+    block = TransformerBlock(d_model=8, n_head=2, d_k=4, d_v=4, d_ff=16)
+    inputs = torch.randn(2, 5, 8) * 3 + 2
+    attention_update, expected_weights = block.attn(inputs, inputs, inputs)
+    after_attention = block.ln1(inputs + attention_update)
+    expected_output = block.ln2(after_attention + block.ff(after_attention))
+
+    actual_output, actual_weights = block(inputs)
+    torch.testing.assert_close(actual_output, expected_output)
+    torch.testing.assert_close(actual_weights, expected_weights)
 
 
 @pytest.mark.parametrize("depth", [1, 2, 4, 6, 8])

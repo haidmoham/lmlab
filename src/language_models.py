@@ -1,8 +1,44 @@
-"""Notebook model implementations plus a one-block language-model wrapper."""
+"""Attention blocks and language models with selectable positional encodings."""
 
 import torch
 from torch import nn
 from torch.nn import functional as F
+
+
+class SinusoidalPositionalEncoding(nn.Module):
+    """Compute the fixed position vectors from Attention Is All You Need, section 3.5."""
+
+    def __init__(self, d_model):
+        super().__init__()
+        if d_model < 1:
+            raise ValueError("d_model must be positive")
+        self.d_model = d_model
+
+        # Features 2i and 2i+1 share the denominator 10000 ** (2i / d_model).
+        even_feature_indices = torch.arange(0, d_model, 2, dtype=torch.float32)
+        wavelength_scales = 10000 ** (even_feature_indices / d_model)
+        # A buffer follows device/dtype moves and checkpoints, but is not optimized.
+        self.register_buffer("wavelength_scales", wavelength_scales)
+
+    def forward(self, positions):
+        """Map position ids [...shape] to vectors [...shape, d_model]."""
+        angles = positions.unsqueeze(-1).to(self.wavelength_scales.dtype)
+        angles = angles / self.wavelength_scales
+        encodings = angles.new_empty(*positions.shape, self.d_model)
+        encodings[..., 0::2] = torch.sin(angles)
+        # Odd widths have one more sine feature than cosine features.
+        cosine_feature_count = self.d_model // 2
+        encodings[..., 1::2] = torch.cos(angles[..., :cosine_feature_count])
+        return encodings
+
+
+def make_position_encoding(position_encoding, block_size, d_model):
+    """Keep learned tables as the baseline; fixed sinusoids need no length-sized table."""
+    if position_encoding == "learned":
+        return nn.Embedding(block_size, d_model)
+    if position_encoding == "sinusoidal":
+        return SinusoidalPositionalEncoding(d_model)
+    raise ValueError("position_encoding must be 'learned' or 'sinusoidal'")
 
 
 class MultiHeadAttention(nn.Module):
@@ -139,12 +175,16 @@ class BigramLanguageModel(nn.Module):
 
 
 class SingleTransformerLanguageModel(nn.Module):
-    """Add learned positions, one pre-norm block, and final norm to the bigram path."""
+    """Add selectable positions, one pre-norm block, and final norm to the bigram path."""
 
-    def __init__(self, vocab_size, n_embd=32, block_size=8, num_heads=2):
+    def __init__(
+        self, vocab_size, n_embd=32, block_size=8, num_heads=2, *, position_encoding="learned"
+    ):
         super().__init__()
         self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
-        self.position_embedding_table = nn.Embedding(block_size, n_embd)
+        self.position_embedding_table = make_position_encoding(
+            position_encoding, block_size, n_embd
+        )
         self.block = TransformerBlock(
             n_embd, num_heads, n_embd // num_heads, n_embd // num_heads, 4 * n_embd
         )
@@ -161,10 +201,21 @@ class SingleTransformerLanguageModel(nn.Module):
 class StackedTransformerLanguageModel(nn.Module):
     """Map token ids to vocabulary logits through a configurable block stack."""
 
-    def __init__(self, vocab_size, n_layers=2, n_embd=32, block_size=8, num_heads=2):
+    def __init__(
+        self,
+        vocab_size,
+        n_layers=2,
+        n_embd=32,
+        block_size=8,
+        num_heads=2,
+        *,
+        position_encoding="learned",
+    ):
         super().__init__()
         self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
-        self.position_embedding_table = nn.Embedding(block_size, n_embd)
+        self.position_embedding_table = make_position_encoding(
+            position_encoding, block_size, n_embd
+        )
         self.stack = TransformerStack(
             n_layers=n_layers,
             d_model=n_embd,

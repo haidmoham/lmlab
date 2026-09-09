@@ -32,13 +32,26 @@ class SinusoidalPositionalEncoding(nn.Module):
         return encodings
 
 
+class NoPositionalEncoding(nn.Module):
+    """Add zero position vectors for an explicit-position ablation."""
+
+    def __init__(self, d_model):
+        super().__init__()
+        self.register_buffer("zero_vector", torch.zeros(d_model))
+
+    def forward(self, positions):
+        return self.zero_vector.expand(*positions.shape, -1)
+
+
 def make_position_encoding(position_encoding, block_size, d_model):
     """Keep learned tables as the baseline; fixed sinusoids need no length-sized table."""
     if position_encoding == "learned":
         return nn.Embedding(block_size, d_model)
     if position_encoding == "sinusoidal":
         return SinusoidalPositionalEncoding(d_model)
-    raise ValueError("position_encoding must be 'learned' or 'sinusoidal'")
+    if position_encoding == "none":
+        return NoPositionalEncoding(d_model)
+    raise ValueError("position_encoding must be 'learned', 'sinusoidal', or 'none'")
 
 
 class MultiHeadAttention(nn.Module):

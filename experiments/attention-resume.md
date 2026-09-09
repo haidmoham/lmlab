@@ -3,7 +3,7 @@
 ## current state
 
 - `notebooks/03_attention.ipynb` contains the completed bigram versus one-block comparison and local executed outputs. the next stack exercise now follows those results.
-- `TransformerStack` is implemented in the notebook and `src/language_models.py`: configurable depth, independent blocks, final embeddings plus attention maps in layer order. the user wrote the constructor and sequential loop, then delegated completion. the matched bigram/one-block/two-block comparison has now completed: three seeds, 10,000 updates each. see `experiments/depth-comparison.md` and the final notebook section.
+- `TransformerStack` is implemented in the notebook and `src/language_models.py`: configurable depth, independent blocks, final embeddings plus attention maps in layer order. the user wrote the constructor and sequential loop, then delegated completion. the matched bigram and depths 1, 2, 4, 6, and 8 comparison has now completed: three seeds, 10,000 updates each. see `experiments/depth-comparison.md` and the final notebook section.
 - the completed experiment compares one versus two blocks at fixed width, context, data, optimizer, paired batches, and update budget. validation loss is the primary outcome; record parameter counts and training time. this tests added depth with added parameters, not depth independently of capacity.
 
 ## collaboration boundary

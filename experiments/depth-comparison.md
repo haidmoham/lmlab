@@ -35,3 +35,32 @@ paired validation differences (two minus one): -0.0527, -0.0729, -0.0557 nats/to
 the two-block model improved validation loss in every measured seed at this budget. this is evidence for this treatment under these settings, not an isolated effect of depth or a universal result. the central interpretation and choice of follow-up remain open for discussion with the user.
 
 verification: all six baseline loss histories match the prior 10k experiment exactly. recorded source/corpus hashes match the executed files. the two-block 1k checkpoint restored identical next updates when model, optimizer, and RNG state were restored independently. six tests, lint, and formatting checks pass. only the new results cell was executed for notebook reporting; existing outputs were preserved.
+
+## extension: 4, 6, and 8 blocks
+
+pre-run question: does validation loss keep improving as depth increases from 2 to 4, 6, and 8, or does the benefit flatten or reverse? all previous data, optimizer, evaluation, seeds, and 10k-update settings remain fixed. the agent expects possible diminishing returns; this is a hypothesis, not the user's conclusion.
+
+only the new depths are trained. each depth resets to the same post-baseline initialization RNG state, then copies the same embeddings, first block, final norm, and output head. overlapping additional block prefixes therefore start identically, including the prior two-block treatment. depth changes parameters and compute; this remains an equal-update comparison. prior results are retained and will be loaded alongside the new results.
+
+```bash
+uv run python -m experiments.compare_bigram_transformer --steps 10000 --stack-depths 4 6 8 --output artifacts/depth-4-6-8-10k
+```
+
+save the same milestone samples, full checkpoints, and source hashes as before. inspect each seed and train/validation curves before interpreting aggregate rankings. timing comparisons across runs are approximate.
+
+## extension results
+
+all nine new runs completed; prior and new controls and model/data source hashes match. means over the three paired seeds:
+
+| treatment | parameters | train loss | validation loss | validation range | mean update seconds |
+| --- | ---: | ---: | ---: | --- | ---: |
+| bigram | 33,280 | 3.7416 | 3.7752 | 3.7666–3.7805 | 4.53 |
+| 1 block | 46,176 | 3.4156 | 3.5293 | 3.5108–3.5406 | 14.33 |
+| 2 blocks | 58,752 | 3.3196 | 3.4689 | 3.4582–3.4807 | 22.83 |
+| 4 blocks | 83,904 | 3.2163 | 3.3895 | 3.3846–3.3948 | 39.79 |
+| 6 blocks | 109,056 | 3.1791 | 3.3645 | 3.3629–3.3673 | 56.28 |
+| 8 blocks | 134,208 | 3.1472 | 3.3371 | 3.3344–3.3397 | 73.27 |
+
+each seed has the same final validation ranking across depths 1, 2, 4, 6, and 8: deeper is better at this update budget. the 2→4 improvement is 0.0793 nats/token; 4→6 is 0.0251; 6→8 is 0.0273. gains beyond four blocks are smaller, but not strictly diminishing at every increment. parameter count and compute increase together with depth, so this does not isolate depth or establish the best model at equal compute.
+
+verification: 9 complete finite histories with 101 evaluations each; 36 full milestone checkpoints; source hashes match. the new depth interface reproduces the prior two-block losses at updates 0 and 100 exactly. overlapping block prefixes initialize identically. eight tests, lint, and formatting pass. the new notebook results cell is executed; earlier outputs remain intact.

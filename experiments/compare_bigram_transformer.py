@@ -64,8 +64,16 @@ def generate(model, prompt, count=100):
 
 
 def run(
-    steps=1000, seeds=(42, 43, 44), output="artifacts/bigram-vs-transformer", include_stack=False
+    steps=1000,
+    seeds=(42, 43, 44),
+    output="artifacts/bigram-vs-transformer",
+    include_stack=False,
+    stack_depths=(),
 ):
+    if any(depth < 1 for depth in stack_depths):
+        raise ValueError("stack depths must be positive")
+    if len(set(stack_depths)) != len(stack_depths):
+        raise ValueError("stack depths must be unique")
     torch.set_num_threads(2)
     output = Path(output)
     if (output / "results.json").exists():
@@ -82,6 +90,8 @@ def run(
     report = {
         "config": {
             "include_stack": include_stack,
+            "stack_depths": list(stack_depths),
+            "stack_initialization": "reset to post-baseline RNG state for each depth; copy shared components and first block",
             "source_commit": subprocess.check_output(
                 ["git", "rev-parse", "HEAD"], text=True
             ).strip(),
@@ -121,8 +131,17 @@ def run(
         transformer.token_embedding_table.load_state_dict(bigram.token_embedding_table.state_dict())
         transformer.lm_head.load_state_dict(bigram.lm_head.state_dict())
         models = {"bigram": bigram, "transformer": transformer}
+        # Reset before each depth so shared block prefixes start identically.
+        stack_initialization_state = torch.get_rng_state()
+        requested_depths = list(stack_depths)
         if include_stack:
-            stacked = StackedTransformerLanguageModel(len(vocab), n_layers=2)
+            requested_depths.insert(0, 2)
+        if stack_depths and not include_stack:
+            # Existing baseline results remain available; only train requested depths.
+            models = {}
+        for depth in requested_depths:
+            torch.set_rng_state(stack_initialization_state)
+            stacked = StackedTransformerLanguageModel(len(vocab), n_layers=depth)
             # Copy values, never parameter objects: treatments train independently.
             for component in (
                 "token_embedding_table",
@@ -134,7 +153,8 @@ def run(
                 target_component = getattr(stacked, component)
                 target_component.load_state_dict(source_component.state_dict())
             stacked.stack.blocks[0].load_state_dict(transformer.block.state_dict())
-            models["two_blocks"] = stacked
+            treatment_name = "two_blocks" if depth == 2 else f"{depth}_blocks"
+            models[treatment_name] = stacked
         optimizers = {
             name: torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0.01)
             for name, model in models.items()
@@ -219,10 +239,10 @@ def run(
         (output / "results.json").write_text(json.dumps(report, indent=2))
     fig, axes = plt.subplots(1, 2, figsize=(11, 4))
     for ax, split in zip(axes, ("train", "validation")):
-        colors = {"bigram": "#526477", "transformer": "#ac4827"}
-        if include_stack:
-            colors["two_blocks"] = "#31785c"
-        for name, color in colors.items():
+        palette = ["#526477", "#ac4827", "#31785c", "#7657a3", "#b57c20", "#238a9c"]
+        treatment_names = list(models)
+        for treatment_index, name in enumerate(treatment_names):
+            color = palette[treatment_index % len(palette)]
             runs = [r for r in report["runs"] if r["model"] == name]
             values = torch.tensor([[h[split] for h in r["history"]] for r in runs])
             x = [h["step"] for h in runs[0]["history"]]
@@ -246,5 +266,11 @@ if __name__ == "__main__":
     parser.add_argument("--steps", type=int, default=1000)
     parser.add_argument("--output", default="artifacts/bigram-vs-transformer")
     parser.add_argument("--include-stack", action="store_true")
+    parser.add_argument("--stack-depths", type=int, nargs="*", default=[])
     args = parser.parse_args()
-    run(steps=args.steps, output=args.output, include_stack=args.include_stack)
+    run(
+        steps=args.steps,
+        output=args.output,
+        include_stack=args.include_stack,
+        stack_depths=args.stack_depths,
+    )

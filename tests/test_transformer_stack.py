@@ -8,7 +8,7 @@ from src.language_models import (
 )
 
 
-@pytest.mark.parametrize("depth", [1, 2, 3])
+@pytest.mark.parametrize("depth", [1, 2, 4, 6, 8])
 def test_stack_composition_and_registered_independent_parameters(depth):
     stack = TransformerStack(n_layers=depth, d_model=8, n_head=2, d_k=4, d_v=4, d_ff=16)
     input_embeddings = torch.randn(2, 5, 8)

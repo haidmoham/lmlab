@@ -33,3 +33,7 @@ remaining fidelity differences are intentionally deferred: embedding scaling and
 ## collaboration
 
 preserve the user's authorship of unfamiliar mechanisms unless delegated; own agreed experiment plumbing. explain the computation and propose discriminating controls without silently supplying the user's research argument. preserve the user's context/loss reflection in the notebook. the next four mechanisms have been selected, but task choice and unagreed experiment budgets are still decisions to make together.
+
+## suggested restart
+
+start with warmup on the current post-norm language model: explain the learning-rate schedule, implement it, and check its values at the start, warmup boundary, and decay phase. establish a fresh post-norm baseline before comparing training outcomes; the saved pre-norm results are not that control. add dropout as a separate treatment so its effect stays distinguishable. reserve encoder + cross-attention for a fresh implementation session with a source/target task and masking design agreed first. this is the assistant's proposed order, not an additional user requirement.

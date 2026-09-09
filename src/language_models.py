@@ -87,6 +87,26 @@ class TransformerBlock(nn.Module):
         return x, weights
 
 
+class TransformerStack(nn.Module):
+    """Compose independent blocks; return embeddings and attention maps in layer order."""
+
+    def __init__(self, n_layers, d_model, n_head, d_k, d_v, d_ff):
+        super().__init__()
+        if n_layers < 1:
+            raise ValueError("n_layers must be positive")
+        self.blocks = nn.ModuleList(
+            [TransformerBlock(d_model, n_head, d_k, d_v, d_ff) for _ in range(n_layers)]
+        )
+
+    def forward(self, x):
+        # x stays [batch, tokens, d_model] throughout the stack.
+        attention_weights = []
+        for block in self.blocks:
+            x, weights = block(x)
+            attention_weights.append(weights)
+        return x, attention_weights
+
+
 class BigramLanguageModel(nn.Module):
     def __init__(self, vocab_size, n_embd):
         super().__init__()

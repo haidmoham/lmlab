@@ -9,7 +9,10 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from experiments.notebook_theme import notebook_figure
 
+
+@notebook_figure
 def plot_checkpoint_text(directory="artifacts/bigram-vs-transformer-milestones", seed=42):
     directory = Path(directory)
     report = json.loads((directory / "results.json").read_text())
@@ -18,11 +21,11 @@ def plot_checkpoint_text(directory="artifacts/bigram-vs-transformer-milestones",
     }
     milestones = (1000, 2500, 5000, 10000)
     fig, axes = plt.subplots(4, 2, figsize=(14, 14))
-    fig.patch.set_facecolor("#faf8f3")
+    fig.patch.set_facecolor("#181b25")
     for row, step in enumerate(milestones):
-        for col, (name, color) in enumerate((("bigram", "#526477"), ("transformer", "#ac4827"))):
+        for col, (name, color) in enumerate((("bigram", "#d7b887"), ("transformer", "#92b9e0"))):
             ax = axes[row, col]
-            ax.set_facecolor("#faf8f3")
+            ax.set_facecolor("#181b25")
             sample = samples[step, name]
             # show control bytes as escapes; retain generated spelling and line breaks.
             safe_text = "".join(
@@ -48,7 +51,7 @@ def plot_checkpoint_text(directory="artifacts/bigram-vs-transformer-milestones",
                 f"validation loss {sample['validation_loss']:.3f} nats/token",
                 transform=ax.transAxes,
                 fontsize=10,
-                color="#626262",
+                color="#b9bfce",
                 va="top",
             )
             ax.text(
@@ -58,7 +61,7 @@ def plot_checkpoint_text(directory="artifacts/bigram-vs-transformer-milestones",
                 transform=ax.transAxes,
                 fontsize=10.5,
                 fontfamily="monospace",
-                color="#222222",
+                color="#e5e7ef",
                 va="top",
                 linespacing=1.25,
             )
@@ -78,7 +81,7 @@ def plot_checkpoint_text(directory="artifacts/bigram-vs-transformer-milestones",
         f"shared prompt: {prompt!r}\n"
         f"training seed {seed} · sampling seed 123 · temperature 1 · 100 new BPE tokens per panel",
         fontsize=11,
-        color="#444444",
+        color="#b9bfce",
         va="top",
     )
     fig.text(
@@ -87,7 +90,7 @@ def plot_checkpoint_text(directory="artifacts/bigram-vs-transformer-milestones",
         "verbatim continuations with visual wrapping; one sample per checkpoint, "
         "not a quality ranking. lower validation loss is better.",
         fontsize=10,
-        color="#555555",
+        color="#b9bfce",
     )
     fig.subplots_adjust(left=0.055, right=0.97, top=0.875, bottom=0.045, hspace=0.22, wspace=0.10)
     for suffix in ("png", "pdf"):

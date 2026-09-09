@@ -12,9 +12,11 @@ import matplotlib.pyplot as plt
 
 from experiments.compare_context_lengths import generate_sample
 from experiments.compare_position_encodings import TREATMENTS, initialize_models, result_tables
+from experiments.notebook_theme import notebook_figure
 from src.dataset import load_tiny_shakespeare_tokens
 
 
+@notebook_figure
 def plot_position_samples(directory, seed=42):
     directory = Path(directory)
     report = json.loads((directory / "results.json").read_text())

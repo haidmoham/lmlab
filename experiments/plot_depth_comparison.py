@@ -9,7 +9,10 @@ import numpy as np
 
 TREATMENTS = ["bigram", "transformer", "two_blocks", "4_blocks", "6_blocks", "8_blocks"]
 LABELS = ["bigram", "1 block", "2 blocks", "4 blocks", "6 blocks", "8 blocks"]
-COLORS = ["#64748b", "#b45309", "#15803d", "#7c3aed", "#db2777", "#0284c7"]
+COLORS = ["#d7b887", "#92b9e0", "#a5cea7", "#b9a3df", "#e5a1b7", "#82cbd1"]
+
+
+from experiments.notebook_theme import notebook_figure
 
 
 def load_depth_reports(root):
@@ -80,6 +83,7 @@ def summarize_depths(combined_runs):
     return rows
 
 
+@notebook_figure
 def plot_depth_comparison(combined_runs, output_path):
     figure, axes = plt.subplots(2, 2, figsize=(13, 9))
     for treatment_index, treatment in enumerate(TREATMENTS):
@@ -146,6 +150,7 @@ def plot_depth_comparison(combined_runs, output_path):
     return Path(output_path)
 
 
+@notebook_figure
 def plot_treatment_text(artifact_root, seed=42, step=10000):
     """Show the same fixed-prompt checkpoint sample for each treatment in a grid."""
     import textwrap
@@ -178,7 +183,7 @@ def plot_treatment_text(artifact_root, seed=42, step=10000):
     longest_panel_lines = max(text.count("\n") + 1 for text in wrapped_continuations)
     panel_height = 1.0 + longest_panel_lines * 0.19
     figure, axes = plt.subplots(3, 2, figsize=(14, 3 * panel_height + 2))
-    figure.patch.set_facecolor("#faf8f3")
+    figure.patch.set_facecolor("#181b25")
     for index, axis in enumerate(axes.flat):
         treatment = TREATMENTS[index]
         sample = checkpoint_samples[treatment]
@@ -199,7 +204,7 @@ def plot_treatment_text(artifact_root, seed=42, step=10000):
             f"seed {seed} validation loss: {sample['validation_loss']:.4f} nats/token",
             transform=axis.transAxes,
             fontsize=10,
-            color="#626262",
+            color="#b9bfce",
             va="top",
         )
         axis.text(
@@ -209,7 +214,7 @@ def plot_treatment_text(artifact_root, seed=42, step=10000):
             transform=axis.transAxes,
             fontsize=10.5,
             fontfamily="monospace",
-            color="#222222",
+            color="#e5e7ef",
             va="top",
             linespacing=1.25,
         )
@@ -228,14 +233,14 @@ def plot_treatment_text(artifact_root, seed=42, step=10000):
         f"shared prompt: {prompt_label!r}\ntraining seed {seed} · sampling seed 123 · temperature 1 · 100 new BPE tokens per panel",
         va="top",
         fontsize=11,
-        color="#444444",
+        color="#b9bfce",
     )
     figure.text(
         0.055,
         0.018,
         "verbatim continuations with visual wrapping; one preselected sample per treatment, not a quality ranking.",
         fontsize=10,
-        color="#555555",
+        color="#b9bfce",
     )
     figure.subplots_adjust(left=0.055, right=0.97, top=0.86, bottom=0.06, hspace=0.30, wspace=0.12)
     output_directory = artifact_root / "depth-4-6-8-10k"

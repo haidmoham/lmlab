@@ -12,6 +12,7 @@ import matplotlib
 import torch
 from torch.nn import functional as F
 
+from experiments.notebook_theme import notebook_figure
 from src.dataset import load_tiny_shakespeare_tokens, split_token_stream
 from src.language_models import (
     BigramLanguageModel,
@@ -237,10 +238,18 @@ def run(
             # retain a weights-only export for the notebook's existing generation cell.
             torch.save(model.state_dict(), output / f"{name}-{seed}.pt")
         (output / "results.json").write_text(json.dumps(report, indent=2))
+    plot_loss_report(report, output)
+    return report
+
+
+@notebook_figure
+def plot_loss_report(report, output):
+    """Redraw saved measurements without rerunning training."""
+    output = Path(output)
     fig, axes = plt.subplots(1, 2, figsize=(11, 4))
     for ax, split in zip(axes, ("train", "validation")):
-        palette = ["#526477", "#ac4827", "#31785c", "#7657a3", "#b57c20", "#238a9c"]
-        treatment_names = list(models)
+        palette = ["#d7b887", "#92b9e0", "#a5cea7", "#b9a3df", "#e5a1b7", "#82cbd1"]
+        treatment_names = list(dict.fromkeys(run["model"] for run in report["runs"]))
         for treatment_index, name in enumerate(treatment_names):
             color = palette[treatment_index % len(palette)]
             runs = [r for r in report["runs"] if r["model"] == name]
@@ -258,7 +267,7 @@ def run(
     fig.tight_layout()
     fig.savefig(output / "loss.png", dpi=160)
     plt.close(fig)
-    return report
+    return output / "loss.png"
 
 
 if __name__ == "__main__":

@@ -12,7 +12,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 CONTEXTS = (8, 32, 128, 256)
-COLORS = ("#b45309", "#15803d", "#7c3aed", "#0284c7")
+COLORS = ("#92b9e0", "#a5cea7", "#b9a3df", "#82cbd1")
+
+
+from experiments.notebook_theme import notebook_figure
 
 
 def read_report(directory):
@@ -72,6 +75,7 @@ def cross_evaluation_table(report, seed=None):
     return "\n".join(lines)
 
 
+@notebook_figure
 def plot_measurements(report, directory):
     figure, axes = plt.subplots(1, 3, figsize=(17, 5))
     for context, color in zip(CONTEXTS, COLORS, strict=True):
@@ -102,7 +106,7 @@ def plot_measurements(report, directory):
                 and row["evaluation_context"] == evaluation_context
             ]
             matrix[row_index, column_index] = mean(values)
-    axes[2].imshow(np.ones((4, 4)), cmap="Greys", vmin=0, vmax=10)
+    axes[2].imshow(np.zeros((4, 4)), cmap=matplotlib.colors.ListedColormap(["#222735"]))
     for row_index in range(4):
         for column_index in range(4):
             value = matrix[row_index, column_index]
@@ -125,6 +129,7 @@ def plot_measurements(report, directory):
     return output_path
 
 
+@notebook_figure
 def plot_text_panels(report, directory, frozen_long_model=False):
     """Use preselected seed 42 and fixed sampling; no sample selection by quality."""
     samples = []
@@ -165,7 +170,7 @@ def plot_text_panels(report, directory, frozen_long_model=False):
     longest_panel = max(text.count("\n") + 1 for text in wrapped_texts)
     panel_height = 1.2 + longest_panel * 0.20
     figure, axes = plt.subplots(2, 2, figsize=(14, 2 * panel_height + 2))
-    figure.patch.set_facecolor("#faf8f3")
+    figure.patch.set_facecolor("#181b25")
     for index, axis in enumerate(axes.flat):
         context = CONTEXTS[index]
         training_context = 256 if frozen_long_model else context
@@ -187,7 +192,7 @@ def plot_text_panels(report, directory, frozen_long_model=False):
             f"seed 42 validation loss: {samples[index][loss_key]:.4f} nats/token",
             transform=axis.transAxes,
             fontsize=10,
-            color="#626262",
+            color="#b9bfce",
             va="top",
         )
         axis.text(
@@ -197,7 +202,7 @@ def plot_text_panels(report, directory, frozen_long_model=False):
             transform=axis.transAxes,
             fontsize=10.5,
             fontfamily="monospace",
-            color="#222222",
+            color="#e5e7ef",
             va="top",
             linespacing=1.25,
         )
@@ -214,7 +219,7 @@ def plot_text_panels(report, directory, frozen_long_model=False):
         f"same 256-token prompt, truncated to evaluation context · suffix: {prompt_suffix!r}\n"
         "training seed 42 · sampling seed 123 · temperature 1 · 100 new BPE tokens per panel",
         fontsize=10.5,
-        color="#444444",
+        color="#b9bfce",
         va="top",
     )
     figure.text(
@@ -222,7 +227,7 @@ def plot_text_panels(report, directory, frozen_long_model=False):
         0.025,
         "verbatim continuations with visual wrapping; fixed samples, not a quality ranking.",
         fontsize=10,
-        color="#555555",
+        color="#b9bfce",
     )
     figure.subplots_adjust(left=0.055, right=0.97, top=0.82, bottom=0.09, hspace=0.35, wspace=0.12)
     filename = "frozen-model-text" if frozen_long_model else "context-treatment-text"

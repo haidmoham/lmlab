@@ -13,3 +13,7 @@ the updated `AGENTS.md` and poneglyph execution-modes guidance distinguish learn
 next user/agent decision: interpret the completed comparison and choose whether a follow-up would distinguish a useful explanation. the agent can then prepare matched runs, checkpointing, evaluation, and notebook figures; the user retains the central interpretation. the existing one-block language-model wrapper and its checkpoints are unchanged. do not infer demonstrated understanding from existing code or outputs.
 
 poneglyph guidance was checked at `c085fb4`; lmlab's updated contract arrived in `99edb63`. project progress belongs here; no new global rule was needed.
+
+## next walkthrough
+
+context lengths 8/32/128/256 at four blocks are trained for three seeds and 10k updates with matched tokens. final cross-evaluation covers every supported context. see the final notebook cells and `experiments/context-comparison.md`. the user explicitly requested no agent analysis: do not supply conclusions, rankings, or follow-up recommendations before walking through the evidence together. the notebook has measurement tables, curves, native-context samples, and frozen-256-model samples.

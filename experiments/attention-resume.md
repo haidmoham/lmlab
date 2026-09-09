@@ -1,19 +1,33 @@
-# attention comparison resume
+# attention notebook handoff
 
-## current state
+## completed
 
-- `notebooks/03_attention.ipynb` contains the completed bigram versus one-block comparison and local executed outputs. the next stack exercise now follows those results.
-- `TransformerStack` is implemented in the notebook and `src/language_models.py`: configurable depth, independent blocks, final embeddings plus attention maps in layer order. the user wrote the constructor and sequential loop, then delegated completion. the matched bigram and depths 1, 2, 4, 6, and 8 comparison has now completed: three seeds, 10,000 updates each. see `experiments/depth-comparison.md` and the final notebook section.
-- the completed experiment compares one versus two blocks at fixed width, context, data, optimizer, paired batches, and update budget. validation loss is the primary outcome; record parameter counts and training time. this tests added depth with added parameters, not depth independently of capacity.
+`notebooks/03_attention.ipynb` is the shared working surface, with local executed outputs preserved. source implementations live in `src/language_models.py` and the scientific runners in `experiments/`.
 
-## collaboration boundary
+implemented: causal scaled dot-product multi-head attention, ReLU feed-forward networks, pre-norm residual blocks, independent configurable stacks, final normalization, learned and sinusoidal positions, and a zero-position ablation. the current model is a causal language model, not the paper's complete encoder-decoder architecture.
 
-the updated `AGENTS.md` and poneglyph execution-modes guidance distinguish learning work from routine completion per subproblem. preserve implementation that develops the user's understanding; automate agreed experiment plumbing. do not make manual stack implementation an automatic prerequisite if composition is already familiar or delegated.
+completed experiments (all three seeds 42/43/44, 10,000 updates):
+- bigram and depths 1/2/4/6/8: `depth-comparison.md`.
+- contexts 8/32/128/256 at four blocks, including supported frozen-model cross-evaluation: `context-comparison.md`.
+- bigram → six blocks without encoding → six blocks with sinusoidal encoding: `position-encoding-comparison.md`. mean validation losses are 3.8353 / 3.6731 / 3.5363 nats per BPE token; context 32, width 32, matched batches. the user interpreted this as positional encoding helping in this experiment. 36 full checkpoints are saved locally under `artifacts/position-encoding-six-blocks-10k/`.
 
-next user/agent decision: interpret the completed comparison and choose whether a follow-up would distinguish a useful explanation. the agent can then prepare matched runs, checkpointing, evaluation, and notebook figures; the user retains the central interpretation. the existing one-block language-model wrapper and its checkpoints are unchanged. do not infer demonstrated understanding from existing code or outputs.
+protocols differ across experiments; do not merge their losses into a single comparison. historical source hashes describe the code at execution; later plotting-only edits do not rewrite provenance.
 
-poneglyph guidance was checked at `c085fb4`; lmlab's updated contract arrived in `99edb63`. project progress belongs here; no new global rule was needed.
+all nine existing notebook figures now use the dark palette in `experiments/notebook_theme.py`. figures were regenerated from saved measurements/samples; metrics and non-image notebook outputs were preserved. the setup cell applies the palette for future scratch figures. use normal editable code for implementation; tables are welcome, but do not render bright source-code panels. figures follow explicit user requests.
 
-## next walkthrough
+## agreed next scope
 
-context lengths 8/32/128/256 at four blocks are trained for three seeds and 10k updates with matched tokens. final cross-evaluation covers every supported context. see the final notebook cells and `experiments/context-comparison.md`. the user explicitly requested no agent analysis: do not supply conclusions, rankings, or follow-up recommendations before walking through the evidence together. the notebook has measurement tables, curves, native-context samples, and frozen-256-model samples.
+the user selected **encoder, cross-attention, warmup, and dropout**, and explicitly deferred the rest of the paper. this is the next implementation/learning pass, not completed work.
+
+- encoder: unmasked source self-attention, with source padding masks when batching variable lengths.
+- cross-attention: decoder queries attend to encoder keys/values. choose a meaningful source/target task together; source and target lengths can differ. the current attention always creates a triangular self-attention mask, so accepting three tensors does not make it a correct cross-attention implementation.
+- warmup: a learning-rate schedule; it can be investigated in the existing language model independently of the encoder-decoder task.
+- dropout: add the agreed sites and distinguish training from evaluation behavior; it can also be tested with the existing language model. establish rates and controls before a substantial experiment.
+
+reference: [attention is all you need](https://arxiv.org/pdf/1706.03762), sections 3.1/3.2.3 (encoder and cross-attention), 5.3 (warmup and inverse-square-root decay), and 5.4 (dropout). local PDF: `artifacts/papers/attention-is-all-you-need.pdf`.
+
+remaining fidelity differences are intentionally deferred: paper post-norm versus current pre-norm, embedding scaling and weight sharing, label smoothing, original optimizer details beyond the selected schedule, translation-scale data/training, beam search and checkpoint averaging. do not describe the current work as a full paper reproduction. section 4 and table 3 still contain useful reasoning and ablations; the user is choosing a narrower scope, not asserting those sections are only history.
+
+## collaboration
+
+preserve the user's authorship of unfamiliar mechanisms unless delegated; own agreed experiment plumbing. explain the computation and propose discriminating controls without silently supplying the user's research argument. preserve the user's context/loss reflection in the notebook. the next four mechanisms have been selected, but task choice and unagreed experiment budgets are still decisions to make together.

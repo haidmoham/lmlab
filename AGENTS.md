@@ -39,6 +39,8 @@ keep generated data, weights, logs, and artifacts untracked. preserve executed n
 
 for comparable language-model treatments, present a formatted metric table, matched-axis loss curves, and side-by-side generated-text panels in executed notebook cells. use the same preselected seed, prompt, sampling settings, and generation length; label any treatment-specific context truncation. distinguish per-sample seed metrics from aggregate results and preserve generated spelling and line breaks. show the visual in chat when requested. reuse this structure when it helps comparison; do not substitute raw print dumps or select attractive samples as evidence.
 
+implementation explanations should use ordinary editable code, not rendered source-code panels. tables are welcome. use `experiments/notebook_theme.py` for generated notebook figures so backgrounds, labels, and accents match the dark notebook treatment.
+
 ## repository practice
 
 - keep the setup simple and make consequential dependency or architecture proposals with reasons. avoid unrelated abstractions and changes.

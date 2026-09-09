@@ -37,6 +37,8 @@ jupyter is our shared interface for computing, inspecting, and reasoning. put re
 
 keep generated data, weights, logs, and artifacts untracked. preserve executed notebook outputs locally while committing source changes separately. do not clear the shared working surface merely to obtain a clean git status. report prerequisites and execution failures honestly.
 
+for comparable language-model treatments, present a formatted metric table, matched-axis loss curves, and side-by-side generated-text panels in executed notebook cells. use the same preselected seed, prompt, sampling settings, and generation length; label any treatment-specific context truncation. distinguish per-sample seed metrics from aggregate results and preserve generated spelling and line breaks. show the visual in chat when requested. reuse this structure when it helps comparison; do not substitute raw print dumps or select attractive samples as evidence.
+
 ## repository practice
 
 - keep the setup simple and make consequential dependency or architecture proposals with reasons. avoid unrelated abstractions and changes.

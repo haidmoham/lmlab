@@ -47,3 +47,7 @@ make format
 ├── src/           Implementations
 └── tests/         Tests
 ```
+
+## cuda c++ study
+
+[05 — cuda c++ basics](notebooks/05_cuda_cpp_basics.ipynb) provides an unexecuted compile/run workspace for following NVIDIA’s introductory chapter with editable `.cu` files.

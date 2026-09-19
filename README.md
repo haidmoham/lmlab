@@ -18,6 +18,12 @@ From a fresh clone:
 uv sync
 ```
 
+for CUDA kernel work, see [local GPU setup](LOCAL_SETUP.md). the pinned
+[GPU performance engineering curriculum](resources/README.md) provides the longer-term
+learning path and source attribution. the unexecuted
+[CUDA setup notebook](notebooks/cuda_setup.ipynb) provides an inspectable entry point for
+compiling and checking the smoke kernels.
+
 ## common commands
 
 ```bash
@@ -36,6 +42,7 @@ make format
 ├── data/          Local datasets (ignored by Git)
 ├── experiments/   Experiment code and notes
 ├── notebooks/     Exploratory notebooks
+├── resources/     Pinned external learning resources
 ├── scripts/       Utility scripts
 ├── src/           Implementations
 └── tests/         Tests

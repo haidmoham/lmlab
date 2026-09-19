@@ -9,7 +9,10 @@ __pycache__/
 # Editors and operating systems
 .DS_Store
 .idea/
-.vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
 
 # Local data and generated model artifacts
 data/*
@@ -30,3 +33,9 @@ wandb/
 .env
 .env.*
 !.env.example
+
+# Native builds and profiler reports
+.build/
+*.ncu-rep
+*.nsys-rep
+*.sqlite

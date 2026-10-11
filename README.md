@@ -1,42 +1,57 @@
-# lm lab
+# lmlab
 
-A personal laboratory for understanding, building, and researching language models.
+an ai-assisted laboratory for transformer internals, gpu performance engineering,
+inference optimization, and serving systems. develop the judgment of a strong
+inference engineer through small, reproducible experiments. this is a learning
+repository, not an inference framework or production product.
 
-I work from constituent operations to complete models, then change them to investigate what matters. Implementation, mathematical reasoning, and ablation are complementary ways to understand the same system.
+start with [TODO.md](TODO.md): one evening comparing triton row-wise softmax with
+the optimized pytorch operator on an nvidia rtx 3080 (10 gb).
 
-After the attention foundations, the direction is language-model paper reproduction: implementing published ideas, checking fidelity, and investigating changes through ablation.
-
-the long-horizon aim is research independence strong enough to be competitive for fellowships at labs such as anthropic. i write the reference implementations of mechanisms i am learning; ai contributes scientific plumbing, critique, and agreed treatments and ablations. we use jupyter as a shared computational workspace, with runnable experiments and visible evidence.
-
-progress means increasingly owning the questions, experimental decisions, and arguments—not merely producing working models. the [learning and research contract](AGENTS.md) defines the division of labor and experimental standards.
-
-## setup
-
-From a fresh clone:
+## setup and first experiment
 
 ```bash
-uv sync
+uv sync --locked --python 3.12
+uv run --locked python -m kernels.triton.softmax.check
+uv run --locked python -m kernels.triton.softmax.benchmark --output artifacts/softmax/run-1
 ```
 
-## common commands
+these gpu commands require linux or wsl2, a working nvidia driver, and cuda-enabled
+pytorch. the existing `uv.lock` includes triton as pytorch's linux dependency.
+cpu and macos/mps are unsupported for this experiment; the commands fail explicitly.
+see the [experiment protocol](kernels/triton/softmax/README.md) for tolerances,
+timing scope, and limitations. no gpu performance result is recorded yet.
 
-```bash
-make setup
-make notebook
-make test
-make lint
-make format
-```
+existing commands remain: `make notebook`, `make test`, `make lint`, `make format`.
+use `uv run --locked ruff format --check .` for a read-only formatting check.
 
-## repository layout
+## layout
 
-```text
-.
-├── configs/       Experiment configurations
-├── data/          Local datasets (ignored by Git)
-├── experiments/   Experiment code and notes
-├── notebooks/     Exploratory notebooks
-├── scripts/       Utility scripts
-├── src/           Implementations
-└── tests/         Tests
-```
+| area | current contents |
+| --- | --- |
+| `fundamentals/` | [navigation](fundamentals/README.md) to preserved tokenizer, autograd, and transformer work |
+| `notebooks/` | existing shared computational surfaces and saved outputs |
+| `src/` | existing tokenizer, dataset, and language-model implementations |
+| `experiments/` | existing ablation runners, plots, research notes, and handoffs |
+| `kernels/triton/softmax/` | first kernel, correctness entry point, and shape-sweep benchmark |
+| `tests/` | existing regressions and softmax correctness checks |
+| `reports/experiments/` | [softmax worksheet](reports/experiments/softmax.md) for predictions and measured explanations |
+| `artifacts/` | ignored results/checkpoints generated locally |
+
+inference profiling, serving, scheduling, cuda kernels, and optimization agents
+gain directories when there is runnable work. existing code stays at its current
+paths to preserve imports and historical replay.
+
+## experimental and ai contract
+
+each performance experiment states a hypothesis, reference, candidates, numerical
+tolerances, shape sweep, hardware/software/dtype/settings, synchronized timing,
+and an explanation separating observations from interpretation. retain regressions
+and ambiguous results. a microbenchmark alone does not prove faster serving.
+
+agents may implement delegated kernels, correctness tests, benchmark harnesses,
+compiler inspection, profiler summaries, hypotheses, and report drafts. the
+researcher predicts bottlenecks, validates measurements, and explains gains and
+regressions in their own words. generated artifacts do not establish mastery.
+the [learning contract](AGENTS.md) preserves that boundary. no orchestration
+framework is needed.

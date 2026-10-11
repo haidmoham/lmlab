@@ -2,7 +2,7 @@
 
 ## purpose
 
-this repository is my intellectual home for language models: understanding, implementation, paper reproduction, and ablation. the long-horizon ambition is to become competitive for research fellowships at labs such as anthropic. develop the research independence that would make that ambition credible; do not substitute polished artifacts or agent competence for my own command of the work.
+this repository is my intellectual home for language models and inference engineering: understanding, implementation, paper reproduction, ablation, gpu performance, and serving experiments. the current roadmap develops the technical competence of strong inference engineers, including at baseten and wafer. the earlier ambition of research independence remains; do not substitute polished artifacts or agent competence for my own command of the work. this is a learning laboratory, not a new inference framework or production product.
 
 progress means increasingly originating worthwhile questions, reconstructing mechanisms, designing informative experiments, interpreting failures, and defending conclusions. move from faithful reproduction through investigation toward independent contributions as the work warrants it, without imposing a credential checklist or rigid curriculum.
 
@@ -44,6 +44,12 @@ implementation explanations should use ordinary editable code, not rendered sour
 ## repository practice
 
 - keep the setup simple and make consequential dependency or architecture proposals with reasons. avoid unrelated abstractions and changes.
-- implementations belong in `src/`, experiments and research notes in `experiments/`, exploratory notebooks in `notebooks/`, and tests in `tests/`.
+- existing model implementations stay in `src/`, ablations and research notes in `experiments/`, exploratory notebooks in `notebooks/`, and tests in `tests/`. self-contained gpu experiments belong in `kernels/`; written reports belong in `reports/experiments/`. `fundamentals/` links to preserved foundations. create inference/agent directories only when there is concrete runnable work.
 - run established checks before committing and report exact commands and failures. verify relevant experimental invariants; do not add tooling merely to satisfy a ritual.
 - use lowercase prose and interface copy, preserving case required by code, identifiers, paths, or exact quotations.
+
+## gpu experiment contract
+
+the initial triton softmax kernel, reference, correctness tests, and benchmark harness are explicitly delegated to agents. this does not delegate pending transformer mechanisms or future learning work. agents may draft hypotheses/reports, inspect compiler output, and summarize profiler data; i own bottleneck predictions, benchmark validation, and explanations of measured gains and regressions.
+
+performance experiments need a hypothesis, correct reference, candidates, explicit tolerances, representative shape sweeps, hardware/software/dtype/settings, warmup and synchronized gpu timing, and a short evidence-based explanation. never invent measurements, silently fall back to cpu, or claim a speedup from intuition. separate observation from interpretation and microbenchmarks from end-to-end inference. target the rtx 3080's 10 gb budget. apply the same protocol to ai-generated candidates; avoid framework abstractions until multiple experiments demonstrate a need.

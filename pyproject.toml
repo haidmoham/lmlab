@@ -1,7 +1,7 @@
 [project]
 name = "lmlab"
 version = "0.1.0"
-description = "A laboratory for implementing and understanding language models."
+description = "A learning laboratory for language models, GPU kernels, and inference engineering."
 requires-python = ">=3.12"
 dependencies = [
     "jupyterlab",

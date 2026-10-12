@@ -25,6 +25,11 @@ uv run --locked python -c "import torch, triton; from kernels.triton.softmax.com
   failures before proceeding; do not silently use cpu or blindly upgrade packages.
   the first triton compilation may take longer than later calls.
 
+the existing `LOCAL_SETUP.md` records the workstation toolchain and smoke-test
+path; `notebooks/cuda_setup.ipynb` and `notebooks/05_cuda_cpp_basics.ipynb` remain
+available for cuda c++ study. profiler setup is not a prerequisite for this first
+softmax timing run. the pinned curriculum and attribution are in `resources/README.md`.
+
 ### 2. predict before timing (10 minutes)
 
 - [ ] complete the prediction section in `reports/experiments/softmax.md`. predict

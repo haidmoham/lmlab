@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "lmlab: verify CUDA setup",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/verify_cuda_setup.sh",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "lmlab: profile CUDA smoke",
+      "type": "shell",
+      "command": "cuda_home=\"$CUDA_HOME\"; if [ -z \"$cuda_home\" ]; then cuda_home=/usr/local/cuda-13.3; fi; \"$cuda_home/bin/ncu\" --set basic --target-processes all --export \"${workspaceFolder}/.build/ncu_smoke\" --force-overwrite \"${workspaceFolder}/.build/smoke_cuda\"",
+      "dependsOn": "lmlab: verify CUDA setup",
+      "problemMatcher": []
+    }
+  ]
+}

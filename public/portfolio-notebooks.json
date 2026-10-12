@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "repository": "haidmoham/lmlab",
+  "revision": "7e31866dc2ed1e921f19cb30fed713d54afed2e4",
+  "notebooks": [
+    {
+      "slug": "01_tokenizer",
+      "title": "tokenization",
+      "subtitle": "from characters to bytes and learned merges",
+      "description": "naive, byte-level, and byte-pair tokenization in one inspectable notebook.",
+      "path": "notebooks/01_tokenizer.ipynb",
+      "sha256": "fcf7f7c797726e385f834281377ba2b1d87d9fe4b15b3a9c4ede92ecaea9618b",
+      "publishable": true
+    },
+    {
+      "slug": "02_bigram",
+      "title": "the bigram baseline",
+      "subtitle": "a first language model, with the data boundary visible",
+      "description": "token streams, training and validation splits, and a count-based starting point.",
+      "path": "notebooks/02_bigram.ipynb",
+      "sha256": "a2f7571e44570eed58701a3e88a8a31a60663c0bfc98e745b21f208bc2a494c9",
+      "publishable": true
+    },
+    {
+      "slug": "03_attention",
+      "title": "attention",
+      "subtitle": "building and comparing context-dependent models",
+      "description": "authored implementation and comparison notes. this revision does not contain saved cell outputs.",
+      "path": "notebooks/03_attention.ipynb",
+      "sha256": "b92427936a99db632d5e2520580e7eb27dda9864d59d817c3b77c602e6173239",
+      "publishable": true
+    },
+    {
+      "slug": "04_autograd",
+      "title": "automatic differentiation",
+      "subtitle": "following gradients through a computation",
+      "description": "an implementation notebook with retained cell outputs. source and output are shown together.",
+      "path": "notebooks/04_autograd.ipynb",
+      "sha256": "97b241633a3e32d326af7379312a009e6947e44b89c175b2933afc0122a5f872",
+      "publishable": true
+    }
+  ]
+}

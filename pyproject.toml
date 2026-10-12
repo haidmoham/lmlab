@@ -22,3 +22,4 @@ pythonpath = ["."]
 
 [tool.ruff]
 line-length = 100
+extend-exclude = ["resources/gpu-perf-engineering-resources"]

@@ -14,8 +14,12 @@ the attention handoff distinguishes old pre-norm runs from current post-norm
 source. do not relabel measurements or treat historical checkpoints as a matched
 post-norm control. pending learning mechanisms remain yours unless delegated.
 
-inspection found no tracked dedicated interpretability, inference serving, or gpu
-timing infrastructure. the untracked local cuda vector-add exercise in the original
-checkout was left untouched and is not included here. use `kernels/cuda/` when it
-is deliberately integrated. no existing code was relocated; only `todo.md` was
-renamed to `TODO.md` and expanded from its historical branch-review note.
+the existing [cuda setup](../LOCAL_SETUP.md),
+[setup notebook](../notebooks/cuda_setup.ipynb), and
+[cuda c++ study notebook](../notebooks/05_cuda_cpp_basics.ipynb) are preserved,
+along with smoke primitives in `src/gpu_primitives/` and the
+[credited curriculum](../resources/README.md). no dedicated interpretability or
+inference serving implementation is introduced. the untracked local cuda
+vector-add exercise in the original checkout remains untouched and uncommitted.
+use `kernels/cuda/` when it is deliberately integrated. no existing code was
+relocated; only `todo.md` was renamed to `TODO.md` and expanded.

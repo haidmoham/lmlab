@@ -22,6 +22,12 @@ cpu and macos/mps are unsupported for this experiment; the commands fail explici
 see the [experiment protocol](kernels/triton/softmax/README.md) for tolerances,
 timing scope, and limitations. no gpu performance result is recorded yet.
 
+for cuda c++ work, see [local gpu setup](LOCAL_SETUP.md), the
+[setup notebook](notebooks/cuda_setup.ipynb), and
+[05 — cuda c++ basics](notebooks/05_cuda_cpp_basics.ipynb). these provide the
+existing smoke checks and unexecuted study workspace. the
+[pinned gpu curriculum](resources/README.md) retains its upstream attribution.
+
 existing commands remain: `make notebook`, `make test`, `make lint`, `make format`.
 use `uv run --locked ruff format --check .` for a read-only formatting check.
 
@@ -31,14 +37,17 @@ use `uv run --locked ruff format --check .` for a read-only formatting check.
 | --- | --- |
 | `fundamentals/` | [navigation](fundamentals/README.md) to preserved tokenizer, autograd, and transformer work |
 | `notebooks/` | existing shared computational surfaces and saved outputs |
-| `src/` | existing tokenizer, dataset, and language-model implementations |
+| `src/` | tokenizer, dataset, language-model implementations, and gpu smoke primitives |
 | `experiments/` | existing ablation runners, plots, research notes, and handoffs |
 | `kernels/triton/softmax/` | first kernel, correctness entry point, and shape-sweep benchmark |
 | `tests/` | existing regressions and softmax correctness checks |
 | `reports/experiments/` | [softmax worksheet](reports/experiments/softmax.md) for predictions and measured explanations |
 | `artifacts/` | ignored results/checkpoints generated locally |
+| `resources/` | pinned external gpu curriculum and provenance |
+| `scripts/` | dataset utilities and local cuda setup verifier |
+| `public/` | explicit notebook publication manifest; private drafts stay excluded |
 
-inference profiling, serving, scheduling, cuda kernels, and optimization agents
+inference profiling, serving, scheduling, further kernels, and optimization agents
 gain directories when there is runnable work. existing code stays at its current
 paths to preserve imports and historical replay.
 

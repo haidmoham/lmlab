@@ -8,9 +8,9 @@ progress means increasingly originating worthwhile questions, reconstructing mec
 
 ## division of labor
 
-- i own the implementation work that develops my understanding: reference implementations of the mechanisms i am learning. explain fully, review rigorously, trace computations, and scaffold with pedagogical todos when requested. preserve that implementation opportunity unless i delegate it.
+- assistant implementation is the default within an agreed experiment, including kernels, references, tests, scaffolding, and reports. explain the computation and review it rigorously; my understanding and research judgment remain the goal.
 - you own routine execution within the agreed experiment: scientific plumbing for batching, evaluation, matched runs, checkpointing, reproducibility checks, and visualization. implement agreed high-level treatments and ablations without making me rebuild familiar infrastructure.
-- if a treatment changes the mechanism i am currently learning, return its implementation to me unless delegated. the boundary moves with the learning objective; neither typing every line nor outsourcing every difficult step is the aim.
+- reserve a small implementation piece for me only when writing it would teach a concrete mental model that reading, tracing, or modifying existing code would not teach as well. explain the benefit and keep the piece narrow. expect these exceptions to be rare, and preserve any work i explicitly choose to implement myself.
 - we design experiments together. bring your own hypotheses and alternatives while helping me increasingly originate the question, predict discriminating outcomes, and choose what evidence would change my mind.
 - i own the central research argument. challenge my interpretation and help improve its expression; make your contributions and unresolved alternatives visible rather than silently supplying my conclusions.
 - review requests remain read-only. default edits to my existing reference code to pedagogical clarification that preserves computation; behavioral changes require delegation. routine plumbing for an already agreed experiment is authorized by that experiment.
@@ -35,7 +35,7 @@ save the checkpoints and provenance needed for planned comparisons and continuat
 
 jupyter is our shared interface for computing, inspecting, and reasoning. put relevant code, settings, executed outputs, figures, and interpretation there so i can inspect and rerun the work. reusable implementations can live in `src/` and experiment runners in `experiments/`; the notebook should expose how they connect and what was actually run.
 
-keep generated data, weights, logs, and artifacts untracked. preserve executed notebook outputs locally while committing source changes separately. do not clear the shared working surface merely to obtain a clean git status. report prerequisites and execution failures honestly.
+keep generated data, weights, full logs, and artifacts untracked. small sanitized measurement records and source provenance may accompany a committed experiment report. preserve executed notebook outputs locally while committing source changes separately. do not clear the shared working surface merely to obtain a clean git status. report prerequisites and execution failures honestly.
 
 for comparable language-model treatments, present a formatted metric table, matched-axis loss curves, and side-by-side generated-text panels in executed notebook cells. use the same preselected seed, prompt, sampling settings, and generation length; label any treatment-specific context truncation. distinguish per-sample seed metrics from aggregate results and preserve generated spelling and line breaks. show the visual in chat when requested. reuse this structure when it helps comparison; do not substitute raw print dumps or select attractive samples as evidence.
 
@@ -50,6 +50,6 @@ implementation explanations should use ordinary editable code, not rendered sour
 
 ## gpu experiment contract
 
-the initial triton softmax kernel, reference, correctness tests, and benchmark harness are explicitly delegated to agents. this does not delegate pending transformer mechanisms or future learning work. agents may draft hypotheses/reports, inspect compiler output, and summarize profiler data; i own bottleneck predictions, benchmark validation, and explanations of measured gains and regressions.
+assistant implementation is the default for agreed GPU and inference experiments. flag rare, small hands-on pieces only for a concrete learning benefit; do not make manual implementation a routine gate. this does not authorize unrequested experiments or mark pending transformer work complete. agents may draft hypotheses and reports, inspect compiler output, and summarize profiler data; i own bottleneck predictions, benchmark validation, and the central explanation. do not invent my predictions or conclusions.
 
 performance experiments need a hypothesis, correct reference, candidates, explicit tolerances, representative shape sweeps, hardware/software/dtype/settings, warmup and synchronized gpu timing, and a short evidence-based explanation. never invent measurements, silently fall back to cpu, or claim a speedup from intuition. separate observation from interpretation and microbenchmarks from end-to-end inference. target the rtx 3080's 10 gb budget. apply the same protocol to ai-generated candidates; avoid framework abstractions until multiple experiments demonstrate a need.

@@ -1,0 +1,431 @@
+--- a/kernels/triton/softmax/common.py
++++ b/kernels/triton/softmax/common.py
+@@ -35,6 +35,41 @@
+     return torch.softmax(inputs, dim=-1, out=output)
+
+
++def eager_softmax(inputs, output=None):
++    """Unfused, forward-only softmax with float32 arithmetic and final dtype rounding."""
++    if inputs.ndim != 2 or not inputs.is_contiguous():
++        raise ValueError("inputs must be a contiguous 2D tensor")
++    rows, width = inputs.shape
++    if rows < 1 or not 1 <= width <= 8192:
++        raise ValueError("rows must be positive and width must be between 1 and 8192")
++    if inputs.dtype not in DTYPES.values():
++        raise ValueError("only float32 and float16 are supported")
++    if inputs.requires_grad:
++        raise ValueError("this forward-only experiment does not implement autograd")
++    if output is not None:
++        if (
++            output.shape != inputs.shape
++            or output.dtype != inputs.dtype
++            or output.device != inputs.device
++            or not output.is_contiguous()
++            or output.requires_grad
++        ):
++            raise ValueError("output must match inputs and be contiguous without gradients")
++        input_start = inputs.data_ptr()
++        output_start = output.data_ptr()
++        byte_count = inputs.numel() * inputs.element_size()
++        if input_start < output_start + byte_count and output_start < input_start + byte_count:
++            raise ValueError("input and output storage must not overlap")
++    values = inputs.float()
++    maxima = values.amax(dim=-1, keepdim=True)
++    shifted = values - maxima
++    numerators = shifted.exp()
++    denominators = numerators.sum(dim=-1, keepdim=True)
++    if output is None:
++        output = torch.empty_like(inputs)
++    return torch.div(numerators, denominators, out=output)
++
++
+ def assert_correct(inputs, actual):
+     """Check element values and probability invariants, with dtype-specific tolerances."""
+     if actual.shape != inputs.shape or actual.dtype != inputs.dtype:
+--- a/kernels/triton/softmax/check.py
++++ b/kernels/triton/softmax/check.py
+@@ -1,6 +1,7 @@
+ """Strict GPU correctness entry point; absence of a GPU is a failure, not a skip."""
+
+ import argparse
++from functools import partial
+
+ import torch
+
+@@ -10,7 +11,9 @@
+     ROW_WIDTHS,
+     adversarial_inputs,
+     assert_correct,
++    eager_softmax,
+     require_cuda,
++    torch_softmax,
+ )
+
+
+@@ -23,7 +26,24 @@
+     from .kernel import triton_softmax
+
+     print(f"checking device {device}: {torch.cuda.get_device_name(device)}")
+-    case_count = 0
++    case_counts = {"torch": 0, "eager": 0, "triton": 0}
++
++    def check_case(inputs):
++        outputs = {provider: torch.empty_like(inputs) for provider in case_counts}
++        functions = {
++            "torch": partial(torch_softmax, inputs, outputs["torch"]),
++            "eager": partial(eager_softmax, inputs, outputs["eager"]),
++            "triton": partial(
++                triton_softmax, inputs, outputs["triton"], num_warps=args.num_warps
++            ),
++        }
++        for provider, function in functions.items():
++            actual = function()
++            if actual is not outputs[provider] or actual.data_ptr() != outputs[provider].data_ptr():
++                raise AssertionError(f"{provider} did not reuse its preallocated output")
++            assert_correct(inputs, actual)
++            case_counts[provider] += 1
++
+     with torch.inference_mode():
+         for dtype in DTYPES.values():
+             for seed in (0, 42):
+@@ -33,13 +53,12 @@
+                         inputs = torch.randn(
+                             (rows, width), device=device, dtype=dtype, generator=generator
+                         )
+-                        assert_correct(inputs, triton_softmax(inputs, num_warps=args.num_warps))
+-                        case_count += 1
++                        check_case(inputs)
+             for _, inputs in adversarial_inputs(device, dtype):
+-                assert_correct(inputs, triton_softmax(inputs, num_warps=args.num_warps))
+-                case_count += 1
++                check_case(inputs)
+     torch.cuda.synchronize(device)
+-    print(f"passed {case_count} GPU correctness cases (float32 and float16)")
++    counts = ", ".join(f"{provider}={count}" for provider, count in case_counts.items())
++    print(f"passed {sum(case_counts.values())} GPU provider cases ({counts}; float32 and float16)")
+
+
+ if __name__ == "__main__":
+--- a/kernels/triton/softmax/benchmark.py
++++ b/kernels/triton/softmax/benchmark.py
+@@ -10,11 +10,28 @@
+ import subprocess
+ from datetime import UTC, datetime
+ from functools import partial
++from itertools import permutations
+ from pathlib import Path
+
+ import torch
+
+-from .common import DTYPES, ROW_COUNTS, ROW_WIDTHS, assert_correct, require_cuda, torch_softmax
++from .common import (
++    DTYPES,
++    ROW_COUNTS,
++    ROW_WIDTHS,
++    assert_correct,
++    eager_softmax,
++    require_cuda,
++    torch_softmax,
++)
++
++
++def provider_orders(repeats, order_offset=0):
++    """Balance position and pair precedence using complete six-permutation blocks."""
++    if repeats < 6 or repeats % 6:
++        raise ValueError("repeats must be a positive multiple of 6 for balanced provider order")
++    orders = tuple(permutations(("torch", "eager", "triton")))
++    return tuple(orders[(repeat + order_offset) % len(orders)] for repeat in range(repeats))
+
+
+ def time_batch(function, iterations):
+@@ -96,15 +113,26 @@
+     parser.add_argument("--seed", type=int, default=0)
+     parser.add_argument("--warmup", type=int, default=25)
+     parser.add_argument("--iterations", type=int, default=100)
+-    parser.add_argument("--repeats", type=int, default=7)
++    parser.add_argument(
++        "--repeats", type=int, default=12,
++        help="positive multiple of 6; balances provider position and pair ordering",
++    )
++    parser.add_argument(
++        "--order-offset", type=int, default=0,
++        help="rotate the six provider permutations by this integer offset",
++    )
+     parser.add_argument(
+         "--output", type=Path, required=True, help="new directory; never overwrite a run"
+     )
+     args = parser.parse_args()
+     if min(args.rows) < 1 or min(args.widths) < 1 or max(args.widths) > 8192:
+         parser.error("rows must be positive; widths must be in [1, 8192]")
+-    if args.warmup < 1 or args.iterations < 1 or args.repeats < 5:
+-        parser.error("warmup and iterations must be positive; use at least 5 repeats")
++    if args.warmup < 1 or args.iterations < 1:
++        parser.error("warmup and iterations must be positive")
++    try:
++        orders = provider_orders(args.repeats, args.order_offset)
++    except ValueError as error:
++        parser.error(str(error))
+     if args.output.exists():
+         parser.error("output already exists; choose a new run directory")
+     if os.environ.get("CUDA_LAUNCH_BLOCKING", "0") != "0":
+@@ -123,24 +151,31 @@
+                 inputs = torch.randn(
+                     (rows, width), device=device, dtype=DTYPES[args.dtype], generator=generator
+                 )
+-                torch_output = torch.empty_like(inputs)
+-                triton_output = torch.empty_like(inputs)
++                outputs = {
++                    provider: torch.empty_like(inputs) for provider in ("torch", "eager", "triton")
++                }
+                 functions = {
+-                    "torch": partial(torch_softmax, inputs, torch_output),
++                    "torch": partial(torch_softmax, inputs, outputs["torch"]),
++                    "eager": partial(eager_softmax, inputs, outputs["eager"]),
+                     "triton": partial(
+-                        triton_softmax, inputs, triton_output, num_warps=args.num_warps
++                        triton_softmax, inputs, outputs["triton"], num_warps=args.num_warps
+                     ),
+                 }
+-                # Compile, verify the actual timed paths, and warm both implementations.
+-                for function in functions.values():
+-                    assert_correct(inputs, function())
++                # Triton compilation and all provider correctness checks precede timing.
++                for provider, function in functions.items():
++                    actual = function()
++                    if (
++                        actual is not outputs[provider]
++                        or actual.data_ptr() != outputs[provider].data_ptr()
++                    ):
++                        raise AssertionError(f"{provider} did not reuse its preallocated output")
++                    assert_correct(inputs, actual)
+                     for _ in range(args.warmup):
+                         function()
+                 torch.cuda.synchronize(device)
+-                samples = {"torch": [], "triton": []}
+-                for repeat in range(args.repeats):
+-                    order = ("torch", "triton") if repeat % 2 == 0 else ("triton", "torch")
+-                    for provider in order:
++                samples = {provider: [] for provider in functions}
++                for repeat, order in enumerate(orders):
++                    for order_position, provider in enumerate(order):
+                         milliseconds = time_batch(functions[provider], args.iterations)
+                         samples[provider].append(milliseconds)
+                         raw_samples.append(
+@@ -149,10 +184,12 @@
+                                 "width": width,
+                                 "repeat": repeat,
+                                 "provider": provider,
++                                "order_position": order_position,
+                                 "milliseconds_per_call": milliseconds,
+                             }
+                         )
+                 torch_ms = statistics.median(samples["torch"])
++                eager_ms = statistics.median(samples["eager"])
+                 triton_ms = statistics.median(samples["triton"])
+                 # Minimum logical traffic: read input once, write output once.
+                 logical_bytes = 2 * inputs.numel() * inputs.element_size()
+@@ -163,19 +200,28 @@
+                     "torch_median_us": torch_ms * 1000,
+                     "torch_min_us": min(samples["torch"]) * 1000,
+                     "torch_max_us": max(samples["torch"]) * 1000,
++                    "eager_median_us": eager_ms * 1000,
++                    "eager_min_us": min(samples["eager"]) * 1000,
++                    "eager_max_us": max(samples["eager"]) * 1000,
+                     "triton_median_us": triton_ms * 1000,
+                     "triton_min_us": min(samples["triton"]) * 1000,
+                     "triton_max_us": max(samples["triton"]) * 1000,
+                     "torch_effective_gbps": logical_bytes / (torch_ms * 1e6),
++                    "eager_effective_gbps": logical_bytes / (eager_ms * 1e6),
+                     "triton_effective_gbps": logical_bytes / (triton_ms * 1e6),
+                     "speedup_torch_over_triton": torch_ms / triton_ms,
++                    "speedup_eager_over_triton": eager_ms / triton_ms,
++                    "speedup_eager_over_torch": eager_ms / torch_ms,
+                 }
+                 measurements.append(measurement)
+                 print(
+                     f"{rows:5d} x {width:4d} | torch {torch_ms * 1000:8.3f} us | "
+-                    f"triton {triton_ms * 1000:8.3f} us | {torch_ms / triton_ms:.3f}x"
++                    f"eager {eager_ms * 1000:8.3f} us | triton {triton_ms * 1000:8.3f} us | "
++                    f"torch/triton {torch_ms / triton_ms:.3f}x | "
++                    f"eager/triton {eager_ms / triton_ms:.3f}x | "
++                    f"eager/torch {eager_ms / torch_ms:.3f}x"
+                 )
+-                del functions, inputs, torch_output, triton_output
++                del functions, inputs, outputs, actual
+     args.output.mkdir(parents=True, exist_ok=False)
+     settings = {**vars(args), "output": str(args.output)}
+     report = {
+@@ -183,12 +229,39 @@
+         "settings": settings,
+         "protocol": {
+             "timing": "CUDA events; synchronized batch mean, median across interleaved repeats",
+-            "includes": "forward work and possible host launch gaps in the stream",
+-            "excludes": "allocation, JIT compilation, correctness, input generation, transfers",
+-            "cache": "same resident inputs/outputs; warm cache; no explicit cache flush",
+-            "bandwidth": "2 * rows * width * dtype_bytes / seconds; logical, not measured DRAM",
++            "includes": (
++                "CUDA-event intervals include eager cast/operator kernels and intermediate "
++                "traffic; "
++                "eager casts and intermediates allocate inside the callable; cached allocator "
++                "and Python CPU latency appear only through stream gaps and are not fully timed"
++            ),
++            "excludes": (
++                "final output allocation, Triton JIT compilation, correctness, "
++                "input generation, transfers"
++            ),
++            "outputs": "independent preallocated final outputs for torch, eager, and triton",
++            "accumulation": (
++                "eager float16 inputs promote to float32 before max/subtract/exp/sum/divide; "
++                "eager and Triton arithmetic use float32, with only final float16 rounding; "
++                "torch internal accumulator policy is not overridden"
++            ),
++            "provider_order": (
++                "all six permutations in repeated blocks, rotated by order_offset; "
++                "equal position counts and pair precedence; raw order_position is zero-based"
++            ),
++            "cache": (
++                "same resident inputs and preallocated outputs; warmed allocator/cache steady "
++                "state; no explicit cache flush"
++            ),
++            "bandwidth": (
++                "2 * rows * width * dtype_bytes / seconds; logical I/O-equivalent GB/s, "
++                "not measured DRAM bandwidth; understates eager float32 intermediate traffic"
++            ),
+             "correctness": "every measured shape checked before timing; finite logits only",
+         },
++        "repeat_orders": [
++            {"repeat": repeat, "providers": list(order)} for repeat, order in enumerate(orders)
++        ],
+         "measurements": measurements,
+         "raw_samples": raw_samples,
+     }
+--- a/tests/test_softmax.py
++++ b/tests/test_softmax.py
+@@ -3,7 +3,13 @@
+ import pytest
+ import torch
+
+-from kernels.triton.softmax.common import adversarial_inputs, assert_correct, require_cuda
++from kernels.triton.softmax.benchmark import provider_orders
++from kernels.triton.softmax.common import (
++    adversarial_inputs,
++    assert_correct,
++    eager_softmax,
++    require_cuda,
++)
+
+
+ @pytest.fixture
+@@ -72,3 +78,112 @@
+     monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+     with pytest.raises(RuntimeError, match="CPU and MPS are unsupported"):
+         require_cuda()
++
++
++@pytest.mark.parametrize("dtype", [torch.float32, torch.float16])
++@pytest.mark.parametrize("shape", [(1, 1), (3, 31), (2, 257), (1, 8192)])
++def test_eager_shape_dtype_and_preallocated_output(dtype, shape):
++    generator = torch.Generator().manual_seed(42)
++    inputs = torch.randn(shape, dtype=dtype, generator=generator)
++    original = inputs.clone()
++    assert_correct(inputs, eager_softmax(inputs))
++    output = torch.full_like(inputs, float("nan"))
++    assert eager_softmax(inputs, output) is output
++    assert_correct(inputs, output)
++    torch.testing.assert_close(inputs, original, rtol=0, atol=0)
++    inputs.zero_()
++    assert eager_softmax(inputs, output) is output
++    torch.testing.assert_close(output, torch.full_like(inputs, 1 / shape[-1]))
++
++
++@pytest.mark.parametrize("dtype", [torch.float32, torch.float16])
++def test_eager_finite_extreme_logits(dtype):
++    for _, inputs in adversarial_inputs("cpu", dtype):
++        assert_correct(inputs, eager_softmax(inputs))
++
++
++def test_eager_half_precision_extremes_round_only_final_probabilities():
++    inputs = torch.tensor(
++        [
++            [65504, 65472, 65440],
++            [-65504, -65472, -65440],
++            [65504, -65504, 0],
++            [1000, 999.5, 999],
++            [-1000, -1000.5, -1001],
++        ],
++        dtype=torch.float16,
++    )
++    expected = torch.softmax(inputs.double(), dim=-1).half()
++    output = torch.empty_like(inputs)
++    assert eager_softmax(inputs, output) is output
++    torch.testing.assert_close(output, expected, rtol=0, atol=0)
++    assert_correct(inputs, output)
++    uniform = torch.full((2, 8192), 65504, dtype=torch.float16)
++    assert_correct(uniform, eager_softmax(uniform))
++
++
++@pytest.mark.parametrize("shape", [(0, 31), (3, 0), (1, 8193)])
++def test_eager_rejects_unsupported_shapes(shape):
++    with pytest.raises(ValueError, match="rows|width"):
++        eager_softmax(torch.empty(shape))
++
++
++def test_eager_rejects_unsupported_inputs_and_outputs():
++    with pytest.raises(ValueError, match="contiguous 2D"):
++        eager_softmax(torch.randn(3, 31).T)
++    with pytest.raises(ValueError, match="contiguous 2D"):
++        eager_softmax(torch.randn(31))
++    with pytest.raises(ValueError, match="float32 and float16"):
++        eager_softmax(torch.ones(3, 31, dtype=torch.float64))
++    with pytest.raises(ValueError, match="autograd"):
++        eager_softmax(torch.randn(3, 31, requires_grad=True))
++    inputs = torch.randn(3, 31)
++    for output in (
++        torch.empty(3, 30),
++        torch.empty(3, 31, dtype=torch.float16),
++        torch.empty(31, 3).T,
++        torch.empty_like(inputs, requires_grad=True),
++    ):
++        with pytest.raises(ValueError, match="output must match"):
++            eager_softmax(inputs, output)
++    backing = torch.randn(4 * 31)
++    with pytest.raises(ValueError, match="overlap"):
++        eager_softmax(backing[: 3 * 31].reshape(3, 31), backing[31:].reshape(3, 31))
++
++
++@pytest.mark.parametrize("repeats", [6, 12, 18])
++@pytest.mark.parametrize("offset", [-7, 0, 1, 5, 6, 13])
++def test_provider_order_balances_positions_and_pair_precedence(repeats, offset):
++    orders = provider_orders(repeats, offset)
++    providers = {"torch", "eager", "triton"}
++    assert len(orders) == repeats
++    for order in orders:
++        assert len(order) == 3
++        assert set(order) == providers
++    for provider in providers:
++        for position in range(3):
++            assert sum(order[position] == provider for order in orders) == repeats // 3
++        for other in providers - {provider}:
++            preceding = sum(order.index(provider) < order.index(other) for order in orders)
++            assert preceding == repeats // 2
++
++
++def test_provider_order_offset_rotates_schedule():
++    baseline = provider_orders(12)
++    assert provider_orders(12, 1) == baseline[1:] + baseline[:1]
++    assert provider_orders(12, 7) == provider_orders(12, 1)
++
++
++@pytest.mark.parametrize("repeats", [-6, 0, 1, 5, 7, 13])
++def test_provider_order_rejects_unbalanced_repeat_counts(repeats):
++    with pytest.raises(ValueError, match="multiple of 6"):
++        provider_orders(repeats)
++
++
++def test_division_into_half_output_rounds_float32_result():
++    numerators = torch.tensor([[1.0, 0.60653067, 0.36787945]], dtype=torch.float32)
++    denominators = numerators.sum(dim=-1, keepdim=True)
++    output = torch.empty_like(numerators, dtype=torch.float16)
++    expected = (numerators / denominators).half()
++    assert torch.div(numerators, denominators, out=output) is output
++    torch.testing.assert_close(output, expected, rtol=0, atol=0)

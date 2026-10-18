@@ -1,0 +1,676 @@
+{
+  "schema_version": 1,
+  "measurement_units": "microseconds",
+  "sample_units": "milliseconds per call in a synchronized CUDA-event batch",
+  "tolerances": {
+    "float32": {
+      "rtol": 0.0001,
+      "atol": 1e-06,
+      "row_sum_atol": 1e-05
+    },
+    "float16": {
+      "rtol": 0.002,
+      "atol": 2e-05,
+      "row_sum_atol": 0.001
+    }
+  },
+  "runs": {
+    "two-way/run-1": {
+      "environment": {
+        "timestamp_utc": "2026-10-18T00:57:07.772424+00:00",
+        "gpu": "NVIDIA GeForce RTX 3080",
+        "device_index": 0,
+        "compute_capability": [
+          8,
+          6
+        ],
+        "total_vram_bytes": 10736762880,
+        "multiprocessors": 68,
+        "python": "3.12.13",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch": "2.13.0+cu130",
+        "cuda_runtime": "13.0",
+        "triton": "3.7.1",
+        "git_commit": "e107dbf8b7fc25488b74a45436b1ce38bf5bd8e6",
+        "source_sha256": {
+          "kernels/triton/softmax/benchmark.py": "f0c421de25ecfb6de34eb9da7a33ba1f260b06311eb4379768af3ff70a1f9c11",
+          "kernels/triton/softmax/check.py": "3264d51409d0746af7a4fa5c6a534974bdd388f999c9f4f74f870545dfcbfcb4",
+          "kernels/triton/softmax/common.py": "c6d705fd8cbc3cefb0d2c58fea997015a82d797c20add796c4ed0dbd40db22f4",
+          "kernels/triton/softmax/kernel.py": "929def55b5e4f5b569bfd17861822c6a0cd96ac2f9190a6b9dcfffa06d582537",
+          "pyproject.toml": "8378e78536a5ccceb346792b90ba80c6b6443665be73577d508ac68e79667b34",
+          "uv.lock": "f6c0fed3eb25c178c6973545249db3f0e860dbaa2e0c0555de0cc7486753ff8b"
+        },
+        "runtime_settings": {
+          "CUDA_VISIBLE_DEVICES": null,
+          "CUDA_MODULE_LOADING": null,
+          "CUDA_LAUNCH_BLOCKING": null,
+          "deterministic_algorithms": false,
+          "tf32_matmul": false
+        },
+        "gpu_snapshot": {
+          "device_index": "0",
+          "gpu": "NVIDIA GeForce RTX 3080",
+          "driver": "610.88",
+          "pstate": "P2",
+          "temperature_c": "71",
+          "sm_clock": "1710 MHz",
+          "memory_clock": "9501 MHz",
+          "power_draw": "126.45 W",
+          "power_limit": "320.00 W",
+          "memory_used": "2698 MiB"
+        }
+      },
+      "settings": {
+        "device": 0,
+        "dtype": "float32",
+        "rows": [
+          1,
+          32,
+          256,
+          4096
+        ],
+        "widths": [
+          1,
+          31,
+          128,
+          257,
+          781,
+          1024,
+          2049,
+          4096,
+          8192
+        ],
+        "num_warps": 4,
+        "seed": 0,
+        "warmup": 25,
+        "iterations": 100,
+        "repeats": 7
+      },
+      "providers": [
+        "torch",
+        "triton"
+      ],
+      "protocol": {
+        "timing": "CUDA events; synchronized batch mean, median across interleaved repeats",
+        "includes": "forward work and possible host launch gaps in the stream",
+        "excludes": "allocation, JIT compilation, correctness, input generation, transfers",
+        "cache": "same resident inputs/outputs; warm cache; no explicit cache flush",
+        "bandwidth": "2 * rows * width * dtype_bytes / seconds; logical, not measured DRAM",
+        "correctness": "every measured shape checked before timing; finite logits only"
+      },
+      "original_results_sha256": "de81e13a9b196214901a450b7f5591d5dc992c8dcadb92d8bdb5b93100cf9610",
+      "original_summary_sha256": "d93a6d9d929a1999bdd8b06665b3e9565ce2f515b31631c7f1e6b9e4ded8d833",
+      "gpu_correctness_cases_per_provider": 154,
+      "source_state_at_measurement": "clean"
+    },
+    "two-way/run-2": {
+      "environment": {
+        "timestamp_utc": "2026-10-18T00:57:14.518160+00:00",
+        "gpu": "NVIDIA GeForce RTX 3080",
+        "device_index": 0,
+        "compute_capability": [
+          8,
+          6
+        ],
+        "total_vram_bytes": 10736762880,
+        "multiprocessors": 68,
+        "python": "3.12.13",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch": "2.13.0+cu130",
+        "cuda_runtime": "13.0",
+        "triton": "3.7.1",
+        "git_commit": "e107dbf8b7fc25488b74a45436b1ce38bf5bd8e6",
+        "source_sha256": {
+          "kernels/triton/softmax/benchmark.py": "f0c421de25ecfb6de34eb9da7a33ba1f260b06311eb4379768af3ff70a1f9c11",
+          "kernels/triton/softmax/check.py": "3264d51409d0746af7a4fa5c6a534974bdd388f999c9f4f74f870545dfcbfcb4",
+          "kernels/triton/softmax/common.py": "c6d705fd8cbc3cefb0d2c58fea997015a82d797c20add796c4ed0dbd40db22f4",
+          "kernels/triton/softmax/kernel.py": "929def55b5e4f5b569bfd17861822c6a0cd96ac2f9190a6b9dcfffa06d582537",
+          "pyproject.toml": "8378e78536a5ccceb346792b90ba80c6b6443665be73577d508ac68e79667b34",
+          "uv.lock": "f6c0fed3eb25c178c6973545249db3f0e860dbaa2e0c0555de0cc7486753ff8b"
+        },
+        "runtime_settings": {
+          "CUDA_VISIBLE_DEVICES": null,
+          "CUDA_MODULE_LOADING": null,
+          "CUDA_LAUNCH_BLOCKING": null,
+          "deterministic_algorithms": false,
+          "tf32_matmul": false
+        },
+        "gpu_snapshot": {
+          "device_index": "0",
+          "gpu": "NVIDIA GeForce RTX 3080",
+          "driver": "610.88",
+          "pstate": "P2",
+          "temperature_c": "71",
+          "sm_clock": "1710 MHz",
+          "memory_clock": "9501 MHz",
+          "power_draw": "126.99 W",
+          "power_limit": "320.00 W",
+          "memory_used": "2797 MiB"
+        }
+      },
+      "settings": {
+        "device": 0,
+        "dtype": "float32",
+        "rows": [
+          1,
+          32,
+          256,
+          4096
+        ],
+        "widths": [
+          1,
+          31,
+          128,
+          257,
+          781,
+          1024,
+          2049,
+          4096,
+          8192
+        ],
+        "num_warps": 4,
+        "seed": 0,
+        "warmup": 25,
+        "iterations": 100,
+        "repeats": 7
+      },
+      "providers": [
+        "torch",
+        "triton"
+      ],
+      "protocol": {
+        "timing": "CUDA events; synchronized batch mean, median across interleaved repeats",
+        "includes": "forward work and possible host launch gaps in the stream",
+        "excludes": "allocation, JIT compilation, correctness, input generation, transfers",
+        "cache": "same resident inputs/outputs; warm cache; no explicit cache flush",
+        "bandwidth": "2 * rows * width * dtype_bytes / seconds; logical, not measured DRAM",
+        "correctness": "every measured shape checked before timing; finite logits only"
+      },
+      "original_results_sha256": "9ccea6136bb88983e9f4a05aefe2e28d8c21f85271bbdb08cd79788b9161a641",
+      "original_summary_sha256": "01b61bde807031a414243d4f029701dc51531794f678aa023a4e1c2235fa824e",
+      "gpu_correctness_cases_per_provider": 154,
+      "source_state_at_measurement": "clean"
+    },
+    "two-way/fp16-1": {
+      "environment": {
+        "timestamp_utc": "2026-10-18T00:57:20.418940+00:00",
+        "gpu": "NVIDIA GeForce RTX 3080",
+        "device_index": 0,
+        "compute_capability": [
+          8,
+          6
+        ],
+        "total_vram_bytes": 10736762880,
+        "multiprocessors": 68,
+        "python": "3.12.13",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch": "2.13.0+cu130",
+        "cuda_runtime": "13.0",
+        "triton": "3.7.1",
+        "git_commit": "e107dbf8b7fc25488b74a45436b1ce38bf5bd8e6",
+        "source_sha256": {
+          "kernels/triton/softmax/benchmark.py": "f0c421de25ecfb6de34eb9da7a33ba1f260b06311eb4379768af3ff70a1f9c11",
+          "kernels/triton/softmax/check.py": "3264d51409d0746af7a4fa5c6a534974bdd388f999c9f4f74f870545dfcbfcb4",
+          "kernels/triton/softmax/common.py": "c6d705fd8cbc3cefb0d2c58fea997015a82d797c20add796c4ed0dbd40db22f4",
+          "kernels/triton/softmax/kernel.py": "929def55b5e4f5b569bfd17861822c6a0cd96ac2f9190a6b9dcfffa06d582537",
+          "pyproject.toml": "8378e78536a5ccceb346792b90ba80c6b6443665be73577d508ac68e79667b34",
+          "uv.lock": "f6c0fed3eb25c178c6973545249db3f0e860dbaa2e0c0555de0cc7486753ff8b"
+        },
+        "runtime_settings": {
+          "CUDA_VISIBLE_DEVICES": null,
+          "CUDA_MODULE_LOADING": null,
+          "CUDA_LAUNCH_BLOCKING": null,
+          "deterministic_algorithms": false,
+          "tf32_matmul": false
+        },
+        "gpu_snapshot": {
+          "device_index": "0",
+          "gpu": "NVIDIA GeForce RTX 3080",
+          "driver": "610.88",
+          "pstate": "P2",
+          "temperature_c": "73",
+          "sm_clock": "1905 MHz",
+          "memory_clock": "9501 MHz",
+          "power_draw": "155.57 W",
+          "power_limit": "320.00 W",
+          "memory_used": "2702 MiB"
+        }
+      },
+      "settings": {
+        "device": 0,
+        "dtype": "float16",
+        "rows": [
+          1,
+          32,
+          256,
+          4096
+        ],
+        "widths": [
+          1,
+          31,
+          128,
+          257,
+          781,
+          1024,
+          2049,
+          4096,
+          8192
+        ],
+        "num_warps": 4,
+        "seed": 0,
+        "warmup": 25,
+        "iterations": 100,
+        "repeats": 7
+      },
+      "providers": [
+        "torch",
+        "triton"
+      ],
+      "protocol": {
+        "timing": "CUDA events; synchronized batch mean, median across interleaved repeats",
+        "includes": "forward work and possible host launch gaps in the stream",
+        "excludes": "allocation, JIT compilation, correctness, input generation, transfers",
+        "cache": "same resident inputs/outputs; warm cache; no explicit cache flush",
+        "bandwidth": "2 * rows * width * dtype_bytes / seconds; logical, not measured DRAM",
+        "correctness": "every measured shape checked before timing; finite logits only"
+      },
+      "original_results_sha256": "31ab76fcf06b7d84a13446e11d185bbcbf2b0e84d6f25e049350f1258f7697d4",
+      "original_summary_sha256": "505d04ac349929ab0238b7da94ad954218069ffcd9f0547375758f8cd045140d",
+      "gpu_correctness_cases_per_provider": 154,
+      "source_state_at_measurement": "clean"
+    },
+    "three-way/fp32-1": {
+      "environment": {
+        "timestamp_utc": "2026-10-18T23:04:40.516124+00:00",
+        "gpu": "NVIDIA GeForce RTX 3080",
+        "device_index": 0,
+        "compute_capability": [
+          8,
+          6
+        ],
+        "total_vram_bytes": 10736762880,
+        "multiprocessors": 68,
+        "python": "3.12.13",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch": "2.13.0+cu130",
+        "cuda_runtime": "13.0",
+        "triton": "3.7.1",
+        "git_commit": "e107dbf8b7fc25488b74a45436b1ce38bf5bd8e6",
+        "source_sha256": {
+          "kernels/triton/softmax/benchmark.py": "44fe3c54653a59d918aa5d37c7ceff3b02d8d0762bf4ec2d93b05f123f6c1037",
+          "kernels/triton/softmax/check.py": "e5886cb909d05e0f5b998d9811d9d891b456894a6719c16a79852e34f25e73a5",
+          "kernels/triton/softmax/common.py": "761603b76fcec2db3567131d39624654364ad08d8476c5a5c39755f1f2f92702",
+          "kernels/triton/softmax/kernel.py": "929def55b5e4f5b569bfd17861822c6a0cd96ac2f9190a6b9dcfffa06d582537",
+          "pyproject.toml": "8378e78536a5ccceb346792b90ba80c6b6443665be73577d508ac68e79667b34",
+          "uv.lock": "f6c0fed3eb25c178c6973545249db3f0e860dbaa2e0c0555de0cc7486753ff8b"
+        },
+        "runtime_settings": {
+          "CUDA_VISIBLE_DEVICES": null,
+          "CUDA_MODULE_LOADING": null,
+          "CUDA_LAUNCH_BLOCKING": null,
+          "deterministic_algorithms": false,
+          "tf32_matmul": false
+        },
+        "gpu_snapshot": {
+          "device_index": "0",
+          "gpu": "NVIDIA GeForce RTX 3080",
+          "driver": "610.88",
+          "pstate": "P2",
+          "temperature_c": "54",
+          "sm_clock": "750 MHz",
+          "memory_clock": "5001 MHz",
+          "power_draw": "75.03 W",
+          "power_limit": "320.00 W",
+          "memory_used": "1998 MiB"
+        }
+      },
+      "settings": {
+        "device": 0,
+        "dtype": "float32",
+        "rows": [
+          1,
+          32,
+          256,
+          4096
+        ],
+        "widths": [
+          1,
+          31,
+          128,
+          257,
+          781,
+          1024,
+          2049,
+          4096,
+          8192
+        ],
+        "num_warps": 4,
+        "seed": 0,
+        "warmup": 25,
+        "iterations": 100,
+        "repeats": 12,
+        "order_offset": 0
+      },
+      "providers": [
+        "torch",
+        "eager",
+        "triton"
+      ],
+      "protocol": {
+        "timing": "CUDA events; synchronized batch mean, median across interleaved repeats",
+        "includes": "CUDA-event intervals include eager cast/operator kernels and intermediate traffic; eager casts and intermediates allocate inside the callable; cached allocator and Python CPU latency appear only through stream gaps and are not fully timed",
+        "excludes": "final output allocation, Triton JIT compilation, correctness, input generation, transfers",
+        "outputs": "independent preallocated final outputs for torch, eager, and triton",
+        "accumulation": "eager float16 inputs promote to float32 before max/subtract/exp/sum/divide; eager and Triton arithmetic use float32, with only final float16 rounding; torch internal accumulator policy is not overridden",
+        "provider_order": "all six permutations in repeated blocks, rotated by order_offset; equal position counts and pair precedence; raw order_position is zero-based",
+        "cache": "same resident inputs and preallocated outputs; warmed allocator/cache steady state; no explicit cache flush",
+        "bandwidth": "2 * rows * width * dtype_bytes / seconds; logical I/O-equivalent GB/s, not measured DRAM bandwidth; understates eager float32 intermediate traffic",
+        "correctness": "every measured shape checked before timing; finite logits only"
+      },
+      "original_results_sha256": "b8b3d53912c3044c4b81c9ee84c74d3105e7ce2732279f9e42501ce0e5679eca",
+      "original_summary_sha256": "a611e6f0a81c0fce6abacd52f31fe3bd3a4ff3d6b15e478e470806495553587e",
+      "gpu_correctness_cases_per_provider": 154,
+      "source_state_at_measurement": "uncommitted experiment changes"
+    },
+    "three-way/fp32-2": {
+      "environment": {
+        "timestamp_utc": "2026-10-18T23:04:54.915292+00:00",
+        "gpu": "NVIDIA GeForce RTX 3080",
+        "device_index": 0,
+        "compute_capability": [
+          8,
+          6
+        ],
+        "total_vram_bytes": 10736762880,
+        "multiprocessors": 68,
+        "python": "3.12.13",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch": "2.13.0+cu130",
+        "cuda_runtime": "13.0",
+        "triton": "3.7.1",
+        "git_commit": "e107dbf8b7fc25488b74a45436b1ce38bf5bd8e6",
+        "source_sha256": {
+          "kernels/triton/softmax/benchmark.py": "44fe3c54653a59d918aa5d37c7ceff3b02d8d0762bf4ec2d93b05f123f6c1037",
+          "kernels/triton/softmax/check.py": "e5886cb909d05e0f5b998d9811d9d891b456894a6719c16a79852e34f25e73a5",
+          "kernels/triton/softmax/common.py": "761603b76fcec2db3567131d39624654364ad08d8476c5a5c39755f1f2f92702",
+          "kernels/triton/softmax/kernel.py": "929def55b5e4f5b569bfd17861822c6a0cd96ac2f9190a6b9dcfffa06d582537",
+          "pyproject.toml": "8378e78536a5ccceb346792b90ba80c6b6443665be73577d508ac68e79667b34",
+          "uv.lock": "f6c0fed3eb25c178c6973545249db3f0e860dbaa2e0c0555de0cc7486753ff8b"
+        },
+        "runtime_settings": {
+          "CUDA_VISIBLE_DEVICES": null,
+          "CUDA_MODULE_LOADING": null,
+          "CUDA_LAUNCH_BLOCKING": null,
+          "deterministic_algorithms": false,
+          "tf32_matmul": false
+        },
+        "gpu_snapshot": {
+          "device_index": "0",
+          "gpu": "NVIDIA GeForce RTX 3080",
+          "driver": "610.88",
+          "pstate": "P2",
+          "temperature_c": "58",
+          "sm_clock": "765 MHz",
+          "memory_clock": "9501 MHz",
+          "power_draw": "116.46 W",
+          "power_limit": "320.00 W",
+          "memory_used": "1992 MiB"
+        }
+      },
+      "settings": {
+        "device": 0,
+        "dtype": "float32",
+        "rows": [
+          1,
+          32,
+          256,
+          4096
+        ],
+        "widths": [
+          1,
+          31,
+          128,
+          257,
+          781,
+          1024,
+          2049,
+          4096,
+          8192
+        ],
+        "num_warps": 4,
+        "seed": 0,
+        "warmup": 25,
+        "iterations": 100,
+        "repeats": 12,
+        "order_offset": 3
+      },
+      "providers": [
+        "torch",
+        "eager",
+        "triton"
+      ],
+      "protocol": {
+        "timing": "CUDA events; synchronized batch mean, median across interleaved repeats",
+        "includes": "CUDA-event intervals include eager cast/operator kernels and intermediate traffic; eager casts and intermediates allocate inside the callable; cached allocator and Python CPU latency appear only through stream gaps and are not fully timed",
+        "excludes": "final output allocation, Triton JIT compilation, correctness, input generation, transfers",
+        "outputs": "independent preallocated final outputs for torch, eager, and triton",
+        "accumulation": "eager float16 inputs promote to float32 before max/subtract/exp/sum/divide; eager and Triton arithmetic use float32, with only final float16 rounding; torch internal accumulator policy is not overridden",
+        "provider_order": "all six permutations in repeated blocks, rotated by order_offset; equal position counts and pair precedence; raw order_position is zero-based",
+        "cache": "same resident inputs and preallocated outputs; warmed allocator/cache steady state; no explicit cache flush",
+        "bandwidth": "2 * rows * width * dtype_bytes / seconds; logical I/O-equivalent GB/s, not measured DRAM bandwidth; understates eager float32 intermediate traffic",
+        "correctness": "every measured shape checked before timing; finite logits only"
+      },
+      "original_results_sha256": "9af470bfc5016cb06e64aadc02d9014ddc71ff7286b727364df253a2faa0a99f",
+      "original_summary_sha256": "bb75cd4986981c6462f5f3e63b83d7d97a0e500da32332f41e976c59718832a3",
+      "gpu_correctness_cases_per_provider": 154,
+      "source_state_at_measurement": "uncommitted experiment changes"
+    },
+    "three-way/fp16-1": {
+      "environment": {
+        "timestamp_utc": "2026-10-18T23:05:09.234113+00:00",
+        "gpu": "NVIDIA GeForce RTX 3080",
+        "device_index": 0,
+        "compute_capability": [
+          8,
+          6
+        ],
+        "total_vram_bytes": 10736762880,
+        "multiprocessors": 68,
+        "python": "3.12.13",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch": "2.13.0+cu130",
+        "cuda_runtime": "13.0",
+        "triton": "3.7.1",
+        "git_commit": "e107dbf8b7fc25488b74a45436b1ce38bf5bd8e6",
+        "source_sha256": {
+          "kernels/triton/softmax/benchmark.py": "44fe3c54653a59d918aa5d37c7ceff3b02d8d0762bf4ec2d93b05f123f6c1037",
+          "kernels/triton/softmax/check.py": "e5886cb909d05e0f5b998d9811d9d891b456894a6719c16a79852e34f25e73a5",
+          "kernels/triton/softmax/common.py": "761603b76fcec2db3567131d39624654364ad08d8476c5a5c39755f1f2f92702",
+          "kernels/triton/softmax/kernel.py": "929def55b5e4f5b569bfd17861822c6a0cd96ac2f9190a6b9dcfffa06d582537",
+          "pyproject.toml": "8378e78536a5ccceb346792b90ba80c6b6443665be73577d508ac68e79667b34",
+          "uv.lock": "f6c0fed3eb25c178c6973545249db3f0e860dbaa2e0c0555de0cc7486753ff8b"
+        },
+        "runtime_settings": {
+          "CUDA_VISIBLE_DEVICES": null,
+          "CUDA_MODULE_LOADING": null,
+          "CUDA_LAUNCH_BLOCKING": null,
+          "deterministic_algorithms": false,
+          "tf32_matmul": false
+        },
+        "gpu_snapshot": {
+          "device_index": "0",
+          "gpu": "NVIDIA GeForce RTX 3080",
+          "driver": "610.88",
+          "pstate": "P2",
+          "temperature_c": "61",
+          "sm_clock": "1710 MHz",
+          "memory_clock": "9251 MHz",
+          "power_draw": "122.41 W",
+          "power_limit": "320.00 W",
+          "memory_used": "1990 MiB"
+        }
+      },
+      "settings": {
+        "device": 0,
+        "dtype": "float16",
+        "rows": [
+          1,
+          32,
+          256,
+          4096
+        ],
+        "widths": [
+          1,
+          31,
+          128,
+          257,
+          781,
+          1024,
+          2049,
+          4096,
+          8192
+        ],
+        "num_warps": 4,
+        "seed": 0,
+        "warmup": 25,
+        "iterations": 100,
+        "repeats": 12,
+        "order_offset": 1
+      },
+      "providers": [
+        "torch",
+        "eager",
+        "triton"
+      ],
+      "protocol": {
+        "timing": "CUDA events; synchronized batch mean, median across interleaved repeats",
+        "includes": "CUDA-event intervals include eager cast/operator kernels and intermediate traffic; eager casts and intermediates allocate inside the callable; cached allocator and Python CPU latency appear only through stream gaps and are not fully timed",
+        "excludes": "final output allocation, Triton JIT compilation, correctness, input generation, transfers",
+        "outputs": "independent preallocated final outputs for torch, eager, and triton",
+        "accumulation": "eager float16 inputs promote to float32 before max/subtract/exp/sum/divide; eager and Triton arithmetic use float32, with only final float16 rounding; torch internal accumulator policy is not overridden",
+        "provider_order": "all six permutations in repeated blocks, rotated by order_offset; equal position counts and pair precedence; raw order_position is zero-based",
+        "cache": "same resident inputs and preallocated outputs; warmed allocator/cache steady state; no explicit cache flush",
+        "bandwidth": "2 * rows * width * dtype_bytes / seconds; logical I/O-equivalent GB/s, not measured DRAM bandwidth; understates eager float32 intermediate traffic",
+        "correctness": "every measured shape checked before timing; finite logits only"
+      },
+      "original_results_sha256": "e2496fb5bd304e7c47b913c1ea1d50b741f0fc14e9b002baf07ccb2c21adaba9",
+      "original_summary_sha256": "c34fdcb8c9a97cc7ba263d3a4952271d9c93197a59eb60ea8d75aa8824a58020",
+      "gpu_correctness_cases_per_provider": 154,
+      "source_state_at_measurement": "uncommitted experiment changes"
+    },
+    "three-way/fp16-2": {
+      "environment": {
+        "timestamp_utc": "2026-10-18T23:05:23.581796+00:00",
+        "gpu": "NVIDIA GeForce RTX 3080",
+        "device_index": 0,
+        "compute_capability": [
+          8,
+          6
+        ],
+        "total_vram_bytes": 10736762880,
+        "multiprocessors": 68,
+        "python": "3.12.13",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch": "2.13.0+cu130",
+        "cuda_runtime": "13.0",
+        "triton": "3.7.1",
+        "git_commit": "e107dbf8b7fc25488b74a45436b1ce38bf5bd8e6",
+        "source_sha256": {
+          "kernels/triton/softmax/benchmark.py": "44fe3c54653a59d918aa5d37c7ceff3b02d8d0762bf4ec2d93b05f123f6c1037",
+          "kernels/triton/softmax/check.py": "e5886cb909d05e0f5b998d9811d9d891b456894a6719c16a79852e34f25e73a5",
+          "kernels/triton/softmax/common.py": "761603b76fcec2db3567131d39624654364ad08d8476c5a5c39755f1f2f92702",
+          "kernels/triton/softmax/kernel.py": "929def55b5e4f5b569bfd17861822c6a0cd96ac2f9190a6b9dcfffa06d582537",
+          "pyproject.toml": "8378e78536a5ccceb346792b90ba80c6b6443665be73577d508ac68e79667b34",
+          "uv.lock": "f6c0fed3eb25c178c6973545249db3f0e860dbaa2e0c0555de0cc7486753ff8b"
+        },
+        "runtime_settings": {
+          "CUDA_VISIBLE_DEVICES": null,
+          "CUDA_MODULE_LOADING": null,
+          "CUDA_LAUNCH_BLOCKING": null,
+          "deterministic_algorithms": false,
+          "tf32_matmul": false
+        },
+        "gpu_snapshot": {
+          "device_index": "0",
+          "gpu": "NVIDIA GeForce RTX 3080",
+          "driver": "610.88",
+          "pstate": "P2",
+          "temperature_c": "65",
+          "sm_clock": "735 MHz",
+          "memory_clock": "9501 MHz",
+          "power_draw": "125.40 W",
+          "power_limit": "320.00 W",
+          "memory_used": "1972 MiB"
+        }
+      },
+      "settings": {
+        "device": 0,
+        "dtype": "float16",
+        "rows": [
+          1,
+          32,
+          256,
+          4096
+        ],
+        "widths": [
+          1,
+          31,
+          128,
+          257,
+          781,
+          1024,
+          2049,
+          4096,
+          8192
+        ],
+        "num_warps": 4,
+        "seed": 0,
+        "warmup": 25,
+        "iterations": 100,
+        "repeats": 12,
+        "order_offset": 4
+      },
+      "providers": [
+        "torch",
+        "eager",
+        "triton"
+      ],
+      "protocol": {
+        "timing": "CUDA events; synchronized batch mean, median across interleaved repeats",
+        "includes": "CUDA-event intervals include eager cast/operator kernels and intermediate traffic; eager casts and intermediates allocate inside the callable; cached allocator and Python CPU latency appear only through stream gaps and are not fully timed",
+        "excludes": "final output allocation, Triton JIT compilation, correctness, input generation, transfers",
+        "outputs": "independent preallocated final outputs for torch, eager, and triton",
+        "accumulation": "eager float16 inputs promote to float32 before max/subtract/exp/sum/divide; eager and Triton arithmetic use float32, with only final float16 rounding; torch internal accumulator policy is not overridden",
+        "provider_order": "all six permutations in repeated blocks, rotated by order_offset; equal position counts and pair precedence; raw order_position is zero-based",
+        "cache": "same resident inputs and preallocated outputs; warmed allocator/cache steady state; no explicit cache flush",
+        "bandwidth": "2 * rows * width * dtype_bytes / seconds; logical I/O-equivalent GB/s, not measured DRAM bandwidth; understates eager float32 intermediate traffic",
+        "correctness": "every measured shape checked before timing; finite logits only"
+      },
+      "original_results_sha256": "edfa2b32747b13cbe9220f459c55fe2973c5d0b1ce677a697898cee77684493c",
+      "original_summary_sha256": "ded49c29070958a863be6cd3345fc5e387f3f52413d057dcd533eb6d52f3d86a",
+      "gpu_correctness_cases_per_provider": 154,
+      "source_state_at_measurement": "uncommitted experiment changes"
+    }
+  },
+  "three_way_measured_source": {
+    "base_commit": "e107dbf8b7fc25488b74a45436b1ce38bf5bd8e6",
+    "patch": "three-way-measured.patch",
+    "patch_sha256": "cad80758f1fe172fdec9ef823cfe72ac877f6a846a3ca81bac948fa7ac125bb2",
+    "files_in_patch": [
+      "kernels/triton/softmax/common.py",
+      "kernels/triton/softmax/check.py",
+      "kernels/triton/softmax/benchmark.py",
+      "tests/test_softmax.py"
+    ],
+    "test_source_sha256": "6f1650e8db003617ab2a39c754d0074720492cae4142f51e5f13688f8fb73b87",
+    "formatting": "working-source Python ASTs are equivalent to measured files; formatting changed after timing"
+  },
+  "counts": {
+    "runs": 7,
+    "shape_run_records": 252,
+    "provider_measurements": 648,
+    "raw_batch_samples": 6696,
+    "two_way_pytest_passed": 45,
+    "three_way_pytest_passed": 86
+  }
+}

@@ -35,6 +35,41 @@ def torch_softmax(inputs, output=None):
     return torch.softmax(inputs, dim=-1, out=output)
 
 
+def eager_softmax(inputs, output=None):
+    """Unfused, forward-only softmax with float32 arithmetic and final dtype rounding."""
+    if inputs.ndim != 2 or not inputs.is_contiguous():
+        raise ValueError("inputs must be a contiguous 2D tensor")
+    rows, width = inputs.shape
+    if rows < 1 or not 1 <= width <= 8192:
+        raise ValueError("rows must be positive and width must be between 1 and 8192")
+    if inputs.dtype not in DTYPES.values():
+        raise ValueError("only float32 and float16 are supported")
+    if inputs.requires_grad:
+        raise ValueError("this forward-only experiment does not implement autograd")
+    if output is not None:
+        if (
+            output.shape != inputs.shape
+            or output.dtype != inputs.dtype
+            or output.device != inputs.device
+            or not output.is_contiguous()
+            or output.requires_grad
+        ):
+            raise ValueError("output must match inputs and be contiguous without gradients")
+        input_start = inputs.data_ptr()
+        output_start = output.data_ptr()
+        byte_count = inputs.numel() * inputs.element_size()
+        if input_start < output_start + byte_count and output_start < input_start + byte_count:
+            raise ValueError("input and output storage must not overlap")
+    values = inputs.float()
+    maxima = values.amax(dim=-1, keepdim=True)
+    shifted = values - maxima
+    numerators = shifted.exp()
+    denominators = numerators.sum(dim=-1, keepdim=True)
+    if output is None:
+        output = torch.empty_like(inputs)
+    return torch.div(numerators, denominators, out=output)
+
+
 def assert_correct(inputs, actual):
     """Check element values and probability invariants, with dtype-specific tolerances."""
     if actual.shape != inputs.shape or actual.dtype != inputs.dtype:

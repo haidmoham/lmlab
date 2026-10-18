@@ -12,7 +12,7 @@ imports, historical replay, and local outputs.
 
 the attention handoff distinguishes old pre-norm runs from current post-norm
 source. do not relabel measurements or treat historical checkpoints as a matched
-post-norm control. pending learning mechanisms remain yours unless delegated.
+post-norm control. pending learning work is not complete; assistant implementation follows an agreed scope, with rare justified hands-on exceptions.
 
 the existing [cuda setup](../LOCAL_SETUP.md),
 [setup notebook](../notebooks/cuda_setup.ipynb), and

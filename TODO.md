@@ -1,107 +1,38 @@
 # lmlab roadmap
 
-## NOW — first experiment
+## current status: paused after completed softmax comparisons
 
-aim: one focused evening, about two hours after environment setup. produce a
-trustworthy softmax measurement on the rtx 3080 (10 gb) and your own explanation.
-a triton win is not required. run all commands from the repository root with this
-change's branch checked out.
+the completed work is recorded in the [two-provider report](reports/experiments/softmax.md) and [three-provider report](reports/experiments/softmax-three-way.md). no bandwidth calibration, roofline experiment, or profiler capture has been run. resume curriculum work only after a new request.
 
-### 1. prerequisites and device verification (15–30 minutes)
+- [x] verified the existing Linux/WSL2 CUDA environment on the RTX 3080 with Python 3.12 and the locked dependencies.
+- [x] completed the original PyTorch/Triton comparison: two FP32 sweeps and one FP16 sweep, 36 shapes each, seven interleaved repeats per provider, 154 strict GPU cases and 45 pytest tests.
+- [x] added stable, unfused eager softmax and compared all three implementations: two FP32 sweeps and two FP16 sweeps, 36 shapes each, 12 balanced repeats per provider. the strict gate passed 462 provider cases, 154 each; 86 softmax tests passed.
+- [x] preserved every measured shape, provider, range, and repeat-order observation. compact sanitized [measurement records and CPU verifier](reports/experiments/softmax-results/README.md) are committed beside the reports; full raw JSON and generated bundles stay local.
+- [ ] researcher interpretation remains open. original pre-run prediction fields were blank; do not fill them retrospectively as predictions.
+- [ ] measured bandwidth ceiling, limiting-resource profile, notebook presentation of softmax evidence, and any causal explanation of fusion remain pending.
 
-- [ ] use linux x86_64, or a linux shell inside wsl2 on the nvidia workstation.
-  native windows and macos are not targets. use python 3.12, uv, and the existing
-  lockfile. run:
+## current reproduction protocol
+
+these commands document reproduction, not an instruction to resume the paused experiments. run from the repository root on an existing compatible NVIDIA Linux/WSL2 setup, with new output directories:
 
 ```bash
 uv sync --locked --python 3.12
-nvidia-smi
-uv run --locked python -c "import torch, triton; from kernels.triton.softmax.common import require_cuda; d = require_cuda(); p = torch.cuda.get_device_properties(d); print('device:', d, p.name, 'vram GiB:', p.total_memory / 2**30); print('torch:', torch.__version__, 'cuda:', torch.version.cuda, 'triton:', triton.__version__)"
-```
-
-- [ ] confirm the selected device is the rtx 3080. if there are multiple gpus,
-  pass `--device INDEX` to the check and benchmark. close other gpu workloads;
-  record the driver, idle temperature, and power state. resolve driver/runtime
-  failures before proceeding; do not silently use cpu or blindly upgrade packages.
-  the first triton compilation may take longer than later calls.
-
-the existing `LOCAL_SETUP.md` records the workstation toolchain and smoke-test
-path; `notebooks/cuda_setup.ipynb` and `notebooks/05_cuda_cpp_basics.ipynb` remain
-available for cuda c++ study. profiler setup is not a prerequisite for this first
-softmax timing run. the pinned curriculum and attribution are in `resources/README.md`.
-
-### 2. predict before timing (10 minutes)
-
-- [ ] complete the prediction section in `reports/experiments/softmax.md`. predict
-  the winner for `(1, 128)`, `(4096, 128)`, `(4096, 1024)`, and `(4096, 2049)`.
-  predict what changes between widths 2048 and 2049. estimate minimum logical
-  bytes for float32 `(4096, 1024)` and a latency lower bound from a bandwidth
-  assumption you name. explain the expected bottleneck, confidence, and what
-  observation would change your prediction. these are your hypotheses.
-- [ ] trace one row in `kernel.py`: padding mask, subtracting the maximum, fp32
-  exponentiation/reduction, normalization, and masked store.
-
-### 3. establish correctness (10 minutes)
-
-```bash
+uv run --locked python reports/experiments/softmax-results/verify.py
 uv run --locked python -m kernels.triton.softmax.check
 uv run --locked pytest -q tests/test_softmax.py -rs
+uv run --locked python -m kernels.triton.softmax.benchmark --dtype float32 --repeats 12 --order-offset 0 --output artifacts/softmax/reproduction/fp32-1
+uv run --locked python -m kernels.triton.softmax.benchmark --dtype float32 --repeats 12 --order-offset 3 --output artifacts/softmax/reproduction/fp32-2
+uv run --locked python -m kernels.triton.softmax.benchmark --dtype float16 --repeats 12 --order-offset 1 --output artifacts/softmax/reproduction/fp16-1
+uv run --locked python -m kernels.triton.softmax.benchmark --dtype float16 --repeats 12 --order-offset 4 --output artifacts/softmax/reproduction/fp16-2
 ```
 
-- [ ] the strict command must report **154 GPU cases passed**: two seeds × 36
-  shapes × two dtypes, plus five extreme/tied-logit cases per dtype. pytest also
-  covers preallocated outputs and invalid shape/layout/gradient/storage contracts.
-  skipped gpu tests are not correctness evidence; stop if the strict command fails.
-  element tolerances: fp32 `rtol=1e-4, atol=1e-6`; fp16 `rtol=2e-3, atol=2e-5`.
-  row sums and finite/nonnegative probabilities have separate checks.
+the current checker expects 462 provider cases. the current benchmark uses PyTorch, eager, and Triton with 25 warmups and 100 calls per batch; repeats must be a positive multiple of six. all six provider permutations are used, and offsets rotate their schedule. the default is 12 repeats, not the historical seven. input generation, transfers, final output allocation, compilation, and correctness are outside timing. eager GPU casts/operators and their intermediate traffic are timed; Python and allocator CPU costs appear only through stream gaps. see the [protocol](kernels/triton/softmax/README.md).
 
-### 4. measure and repeat (20–30 minutes)
+eager FP16 inputs promote to FP32 before max/subtract/exp/sum/divide and round only the final output. the old two-provider experiment is reproduced from its recorded base commit, not by running the current three-provider defaults. the reports retain losses, overlapping ranges, and reversals; a Triton win is not required.
 
-```bash
-uv run --locked python -m kernels.triton.softmax.benchmark --output artifacts/softmax/run-1
-uv run --locked python -m kernels.triton.softmax.benchmark --output artifacts/softmax/run-2
-uv run --locked python -m kernels.triton.softmax.benchmark --dtype float16 --output artifacts/softmax/fp16-1
-```
+assistant implementation is the default for the planned milestones below. flag a rare, narrow user-written kernel piece only when it teaches a concrete mental model. the proposed next lab is device-resident copy/vector-add bandwidth calibration plus a separate small softmax timeline; it remains unimplemented and unmeasured.
 
-- [ ] inspect each `summary.csv` and `results.json`. defaults: row counts
-  1/32/256/4096; widths 1/31/128/257/781/1024/2049/4096/8192; 25 warmups; 100 calls
-  per batch; seven interleaved provider repeats. every timed shape is checked.
-  retain median/min/max latency in microseconds, effective gb/s, and the ratio
-  `torch_latency / triton_latency`. a ratio below one is a triton loss.
-- [ ] compare the two fp32 runs. preserve losses and noise-sized differences.
-  this is warm-cache forward timing with preallocated outputs. input generation,
-  allocation, transfers, and JIT compilation are excluded. cuda events can include
-  gaps between host launches. this is not backward, cuda-graph, or serving timing.
-- [ ] if time permits, measure the padding boundary:
-
-```bash
-uv run --locked python -m kernels.triton.softmax.benchmark --rows 4096 --widths 2048 2049 --output artifacts/softmax/padding-1
-```
-
-the largest fp32 input is 128 mib; input plus two outputs use 384 mib, with extra
-memory needed for correctness and the runtime. this leaves headroom below 10 gb
-on an idle device. width above 8192 is intentionally unsupported: wide-row
-occupancy/spilling requires another experiment. every run requires a fresh output
-directory to protect prior evidence. raw files stay ignored; copy selected actual
-measurements and exact artifact paths into the tracked report.
-
-### 5. explain and finish (20 minutes)
-
-- [ ] answer in your own words:
-  1. why does subtracting the maximum preserve softmax and help stability?
-  2. why load padded lanes as negative infinity and mask stores?
-  3. how do few rows, short rows, and padded wide rows change likely bottlenecks?
-  4. which predictions matched the data, and which failed?
-  5. does the spread support a win, a loss, or an inconclusive comparison?
-  6. why is effective bandwidth not measured physical dram traffic?
-  7. what profiler evidence would distinguish your explanation from an alternative?
-- [ ] **done:** strict gpu correctness passes; two fp32 sweeps and one fp16 sweep
-  are saved with hardware/software/git/source provenance; the worksheet contains
-  pre-run predictions, a small measured table retaining any observed loss or
-  ambiguous case, and your explanation with an untested alternative. no invented
-  speedup or serving claim. choose one next experiment from the evidence.
-
-## NEXT — gpu fundamentals
+## NEXT — gpu fundamentals, paused
 
 do one milestone at a time under the same experiment contract. create directories
 only when implementing runnable work; keep the question and short report with it.

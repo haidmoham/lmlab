@@ -64,3 +64,9 @@ researcher predicts bottlenecks, validates measurements, and explains gains and
 regressions in their own words. generated artifacts do not establish mastery.
 the [learning contract](AGENTS.md) preserves that boundary. no orchestration
 framework is needed.
+
+## companion project
+
+[tcg-agent](https://github.com/haidmoham/tcg-agent) is a separate private companion
+project. cross-reference relevant learning experiments here; keep project-specific
+implementation and evaluation in its own repository.
